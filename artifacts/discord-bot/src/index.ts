@@ -46,15 +46,22 @@ client.on(Events.VoiceStateUpdate, (oldState: VoiceState, newState: VoiceState) 
 
   if (!userId || !username) return;
 
+  console.log(`[Voice] ${username} | old: ${oldState.channelId ?? "нет"} → new: ${newState.channelId ?? "нет"}`);
+
   const joined = !oldState.channelId && newState.channelId;
   const left = oldState.channelId && !newState.channelId;
+  const switched = oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId;
 
   if (joined) {
     recordVoiceJoin(userId, username);
-    console.log(`[Voice] ${username} зашёл в голосовой канал`);
+    console.log(`[Voice] ${username} ВОШЁЛ в канал #${newState.channel?.name}`);
   } else if (left) {
     recordVoiceLeave(userId, username);
-    console.log(`[Voice] ${username} вышел из голосового канала`);
+    console.log(`[Voice] ${username} ВЫШЕЛ из канала #${oldState.channel?.name}`);
+  } else if (switched) {
+    recordVoiceLeave(userId, username);
+    recordVoiceJoin(userId, username);
+    console.log(`[Voice] ${username} СМЕНИЛ канал: #${oldState.channel?.name} → #${newState.channel?.name}`);
   }
 });
 

@@ -58,11 +58,26 @@ export async function handleCommand(message: Message): Promise<void> {
     return;
   }
 
+  if (content === "!дебаг" || content === "!debug") {
+    const users = getAllUsers();
+    if (users.length === 0) {
+      await message.reply("Данных нет.");
+      return;
+    }
+    const lines = users.map(
+      (u) =>
+        `**${u.username}**: ${u.voiceSeconds.toFixed(0)}с в голосе, ${u.messages} сообщ., в канале: ${u.voiceJoinedAt ? "да" : "нет"}`
+    );
+    await message.reply("🔍 **Сырые данные:**\n" + lines.join("\n"));
+    return;
+  }
+
   if (content === "!помощь" || content === "!help") {
     await message.reply(
       "**Команды бота:**\n" +
       "`!норма` — показать статистику всех участников\n" +
       "`!статус @user` — статистика конкретного участника\n" +
+      "`!дебаг` — сырые данные (секунды, счётчики)\n" +
       "`!помощь` — это сообщение"
     );
   }
