@@ -1,0 +1,79 @@
+import { EmbedBuilder, TextChannel, Client } from "discord.js";
+import { getAllUsers, resetAllStats, UserStats } from "./store.js";
+import { config } from "./config.js";
+
+function formatTime(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return `${h}ч ${m}м`;
+}
+
+function checkNorm(user: UserStats): { passed: boolean; voice: boolean; messages: boolean } {
+  const voice = user.voiceSeconds >= config.weeklyNorm.voiceHours * 3600;
+  const messages = user.messages >= config.weeklyNorm.messages;
+  return { passed: voice && messages, voice, messages };
+}
+
+export async function sendWeeklyReport(client: Client): Promise<void> {
+  const channelId = config.reportChannelId;
+  if (!channelId) {
+    console.error("[Report] DISCORD_REPORT_CHANNEL_ID не задан");
+    return;
+  }
+
+  const channel = await client.channels.fetch(channelId).catch(() => null);
+  if (!channel || !channel.isTextBased()) {
+    console.error("[Report] Канал не найден или не является текстовым");
+    return;
+  }
+
+  const users = getAllUsers();
+  if (users.length === 0) {
+    await (channel as TextChannel).send("📊 Статистика за неделю пуста — активности не было.");
+    return;
+  }
+
+  const passed: string[] = [];
+  const failed: string[] = [];
+
+  for (const user of users) {
+    const norm = checkNorm(user);
+    const voiceStr = formatTime(user.voiceSeconds);
+    const msgStr = `${user.messages} сообщ.`;
+    const line = `**${user.username}** — голос: ${voiceStr} / ${config.weeklyNorm.voiceHours}ч, чат: ${msgStr} / ${config.weeklyNorm.messages}`;
+
+    if (norm.passed) {
+      passed.push("✅ " + line);
+    } else {
+      const reasons: string[] = [];
+      if (!norm.voice) reasons.push("недостаточно времени в голосовом");
+      if (!norm.messages) reasons.push("недостаточно сообщений");
+      failed.push("❌ " + line + ` *(${reasons.join(", ")})*`);
+    }
+  }
+
+  const embed = new EmbedBuilder()
+    .setTitle("📋 Еженедельная проверка нормы активности")
+    .setColor(failed.length === 0 ? 0x57f287 : 0xed4245)
+    .setTimestamp()
+    .setFooter({ text: `Норма: ${config.weeklyNorm.voiceHours}ч голос + ${config.weeklyNorm.messages} сообщений` });
+
+  if (passed.length > 0) {
+    embed.addFields({
+      name: `✅ Норма выполнена (${passed.length})`,
+      value: passed.join("\n").slice(0, 1024),
+    });
+  }
+
+  if (failed.length > 0) {
+    embed.addFields({
+      name: `❌ Норма не выполнена (${failed.length})`,
+      value: failed.join("\n").slice(0, 1024),
+    });
+  }
+
+  await (channel as TextChannel).send({ embeds: [embed] });
+
+  resetAllStats();
+  console.log("[Report] Отчёт отправлен, статистика сброшена.");
+}
