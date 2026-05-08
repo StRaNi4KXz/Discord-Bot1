@@ -11,6 +11,7 @@ import {
   recordVoiceJoin,
   recordVoiceLeave,
   incrementMessages,
+  loadStats,
 } from "./store.js";
 import { isSpam } from "./antiFarm.js";
 import { sendWeeklyReport } from "./report.js";
@@ -25,6 +26,8 @@ const client = new Client({
     GatewayIntentBits.GuildMembers,
   ],
 });
+
+loadStats();
 
 client.once(Events.ClientReady, (c) => {
   console.log(`[Bot] Запущен как ${c.user.tag}`);
