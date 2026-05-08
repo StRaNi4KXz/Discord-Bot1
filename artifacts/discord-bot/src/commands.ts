@@ -102,31 +102,41 @@ export async function handleCommand(message: Message): Promise<void> {
 
     await message.reply(`📤 Отправляю рапорты в ${reportChannels.size} канала(ов)...`);
 
-    const statsMap = new Map(getAllUsers().map((u) => [u.userId, u]));
+    const statsMap = new Map<string, ReturnType<typeof getAllUsers>[0]>();
+    for (const u of getAllUsers()) {
+      statsMap.set(u.userId, u);
+      statsMap.set(u.username.toLowerCase(), u);
+    }
+
     let sent = 0;
+
+    const { ChannelType } = await import("discord.js");
 
     for (const [, ch] of reportChannels) {
       const channelName = ch.name.toLowerCase();
       const usernameFromChannel = channelName.replace("рапорт-", "");
 
-      const member = guild.members.cache.find(
-        (m) => m.user.username.toLowerCase() === usernameFromChannel
-      );
+      const member =
+        guild.members.cache.find(
+          (m) =>
+            m.user.username.toLowerCase() === usernameFromChannel ||
+            m.displayName.toLowerCase() === usernameFromChannel ||
+            m.nickname?.toLowerCase() === usernameFromChannel
+        ) ??
+        (await guild.members.search({ query: usernameFromChannel, limit: 5 })
+          .then((r) => r.find(
+            (m) =>
+              m.user.username.toLowerCase() === usernameFromChannel ||
+              m.displayName.toLowerCase() === usernameFromChannel
+          ) ?? null)
+          .catch(() => null));
 
-      if (!member) {
-        console.warn(`[TestReport] Участник для канала #${ch.name} не найден`);
-        continue;
-      }
+      const displayName = member?.displayName ?? usernameFromChannel;
 
-      const userStats = statsMap.get(member.id) ?? {
-        userId: member.id,
-        username: member.user.username,
-        messages: 0,
-        voiceSeconds: 0,
-        voiceJoinedAt: null,
-      };
+      const userStats = (member ? statsMap.get(member.id) : undefined)
+        ?? statsMap.get(usernameFromChannel)
+        ?? { userId: member?.id ?? "", username: usernameFromChannel, messages: 0, voiceSeconds: 0, voiceJoinedAt: null };
 
-      const displayName = member.displayName;
       const norm = userStats.voiceSeconds >= config.weeklyNorm.voiceHours * 3600
         && userStats.messages >= config.weeklyNorm.messages;
       const normStr = norm
@@ -144,10 +154,9 @@ export async function handleCommand(message: Message): Promise<void> {
       ].join("\n");
 
       try {
-        const { ChannelType } = await import("discord.js");
         if (ch.type === ChannelType.GuildText) {
           await (ch as import("discord.js").TextChannel).send(text);
-          console.log(`[TestReport] Отправлено в #${ch.name}`);
+          console.log(`[TestReport] Отправлено в #${ch.name} (участник: ${displayName})`);
           sent++;
         }
       } catch (e) {
