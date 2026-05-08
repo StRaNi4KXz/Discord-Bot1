@@ -1,6 +1,7 @@
 import { Message } from "discord.js";
 import { getAllUsers, getUser } from "./store.js";
 import { config } from "./config.js";
+import { sendPersonalReport } from "./report.js";
 
 function formatTime(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -80,11 +81,40 @@ export async function handleCommand(message: Message): Promise<void> {
     return;
   }
 
+  if (content === "!тестрапорт" || content === "!testreport") {
+    const guild = message.guild;
+    if (!guild) {
+      await message.reply("Команда доступна только на сервере.");
+      return;
+    }
+
+    const users = getAllUsers();
+    if (users.length === 0) {
+      await message.reply("Статистика пуста — нет данных для отправки.");
+      return;
+    }
+
+    await message.reply(`📤 Отправляю рапорты в личные каналы (${users.length} участников)...`);
+
+    let sent = 0;
+
+    for (const u of users) {
+      const member = await guild.members.fetch(u.userId).catch(() => null);
+      const displayName = member?.displayName ?? u.username;
+      await sendPersonalReport(guild, u, displayName);
+      sent++;
+    }
+
+    await message.reply(`✅ Готово! Рапорты отправлены: ${sent} участников.`);
+    return;
+  }
+
   if (content === "!помощь" || content === "!help") {
     await message.reply(
       "**Команды бота:**\n" +
       "`!норма` — показать статистику всех участников\n" +
       "`!статус @user` — статистика конкретного участника\n" +
+      "`!тестрапорт` — отправить рапорты в личные каналы прямо сейчас\n" +
       "`!дебаг` — сырые данные (секунды, счётчики)\n" +
       "`!помощь` — это сообщение"
     );

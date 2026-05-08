@@ -14,7 +14,7 @@ function checkNorm(user: UserStats): { passed: boolean; voice: boolean; messages
   return { passed: voice && messages, voice, messages };
 }
 
-async function sendPersonalReport(guild: Guild, user: UserStats, displayName: string): Promise<void> {
+export async function sendPersonalReport(guild: Guild, user: UserStats, displayName: string): Promise<void> {
   try {
     const discordUser = await guild.client.users.fetch(user.userId);
     const username = discordUser.username.toLowerCase();
