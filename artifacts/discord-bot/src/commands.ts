@@ -109,6 +109,7 @@ export async function handleCommand(message: Message): Promise<void> {
     }
 
     let sent = 0;
+    const alreadySent = new Set<string>();
 
     const { ChannelType } = await import("discord.js");
 
@@ -134,6 +135,12 @@ export async function handleCommand(message: Message): Promise<void> {
         (await guild.members.search({ query: usernameFromChannel, limit: 10 })
           .then((r) => r.find(matchesChannel) ?? null)
           .catch(() => null));
+
+      const dedupeKey = member?.id ?? usernameFromChannel;
+      if (alreadySent.has(dedupeKey)) {
+        console.log(`[TestReport] Пропуск дубля для ${dedupeKey}`);
+        continue;
+      }
 
       const displayName = member?.displayName ?? usernameFromChannel;
 
@@ -161,6 +168,7 @@ export async function handleCommand(message: Message): Promise<void> {
         if (ch.type === ChannelType.GuildText) {
           await (ch as import("discord.js").TextChannel).send(text);
           console.log(`[TestReport] Отправлено в #${ch.name} (участник: ${displayName})`);
+          alreadySent.add(dedupeKey);
           sent++;
         }
       } catch (e) {
