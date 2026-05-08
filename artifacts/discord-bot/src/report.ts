@@ -22,13 +22,15 @@ export async function sendPersonalReport(guild: Guild, user: UserStats, displayN
     await guild.channels.fetch();
 
     const reportChannel = guild.channels.cache.find(
-      (ch) =>
-        ch.type === ChannelType.GuildText &&
-        ch.name.toLowerCase() === `рапорт-${username}`
+      (ch) => {
+        if (ch.type !== ChannelType.GuildText) return false;
+        const name = ch.name.toLowerCase();
+        return name === `рапорт-${username}` || name.startsWith(`рапорт-${username}`);
+      }
     ) as TextChannel | undefined;
 
     if (!reportChannel) {
-      console.warn(`[Report] Канал рапорт-${username} не найден. Все каналы: ${guild.channels.cache.filter(c => c.type === ChannelType.GuildText).map(c => c.name).join(", ")}`);
+      console.warn(`[Report] Канал рапорт-${username} не найден`);
       return;
     }
 

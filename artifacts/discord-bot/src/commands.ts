@@ -116,19 +116,23 @@ export async function handleCommand(message: Message): Promise<void> {
       const channelName = ch.name.toLowerCase();
       const usernameFromChannel = channelName.replace("рапорт-", "");
 
+      const matchesChannel = (m: import("discord.js").GuildMember) => {
+        const nick = m.nickname?.toLowerCase() ?? "";
+        const display = m.displayName.toLowerCase();
+        const user = m.user.username.toLowerCase();
+        return (
+          nick.startsWith(usernameFromChannel) ||
+          nick === usernameFromChannel ||
+          display.startsWith(usernameFromChannel) ||
+          display === usernameFromChannel ||
+          user === usernameFromChannel
+        );
+      };
+
       const member =
-        guild.members.cache.find(
-          (m) =>
-            m.user.username.toLowerCase() === usernameFromChannel ||
-            m.displayName.toLowerCase() === usernameFromChannel ||
-            m.nickname?.toLowerCase() === usernameFromChannel
-        ) ??
-        (await guild.members.search({ query: usernameFromChannel, limit: 5 })
-          .then((r) => r.find(
-            (m) =>
-              m.user.username.toLowerCase() === usernameFromChannel ||
-              m.displayName.toLowerCase() === usernameFromChannel
-          ) ?? null)
+        guild.members.cache.find(matchesChannel) ??
+        (await guild.members.search({ query: usernameFromChannel, limit: 10 })
+          .then((r) => r.find(matchesChannel) ?? null)
           .catch(() => null));
 
       const displayName = member?.displayName ?? usernameFromChannel;
