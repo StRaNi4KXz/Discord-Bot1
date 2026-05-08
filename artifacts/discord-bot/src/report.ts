@@ -14,6 +14,30 @@ function checkNorm(user: UserStats): { passed: boolean; voice: boolean; messages
   return { passed: voice && messages, voice, messages };
 }
 
+async function sendPersonalDM(client: Client, user: UserStats, displayName: string): Promise<void> {
+  try {
+    const discordUser = await client.users.fetch(user.userId);
+    const norm = checkNorm(user);
+    const voiceStr = formatTime(user.voiceSeconds);
+    const normStr = norm.passed
+      ? "# ✅ Недельная норма выполнена!"
+      : "# ❌ Недельная норма не выполнена!";
+
+    const dm = [
+      `**Clan member:** ${displayName}`,
+      `**Активность в войсах:** ${voiceStr} / ${config.weeklyNorm.voiceHours}ч`,
+      `**Активность по сообщениям:** ${user.messages} / ${config.weeklyNorm.messages}`,
+      ``,
+      normStr,
+    ].join("\n");
+
+    await discordUser.send(dm);
+    console.log(`[DM] Отправлено личное сообщение: ${displayName}`);
+  } catch {
+    console.warn(`[DM] Не удалось отправить ЛС пользователю ${displayName} (закрытые ЛС или ошибка)`);
+  }
+}
+
 export async function sendWeeklyReport(client: Client): Promise<void> {
   const channelId = config.reportChannelId;
   if (!channelId) {
@@ -57,6 +81,8 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
       if (!norm.messages) reasons.push("недостаточно сообщений");
       failed.push("❌ " + line + ` *(${reasons.join(", ")})*`);
     }
+
+    await sendPersonalDM(client, user, displayName);
   }
 
   const embed = new EmbedBuilder()
