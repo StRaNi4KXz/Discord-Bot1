@@ -33,14 +33,21 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
     return;
   }
 
+  const guild = client.guilds.cache.first();
+
   const passed: string[] = [];
   const failed: string[] = [];
 
   for (const user of users) {
+    const member = guild
+      ? await guild.members.fetch(user.userId).catch(() => null)
+      : null;
+    const displayName = member?.displayName ?? user.username;
+
     const norm = checkNorm(user);
     const voiceStr = formatTime(user.voiceSeconds);
     const msgStr = `${user.messages} сообщ.`;
-    const line = `**${user.username}** — голос: ${voiceStr} / ${config.weeklyNorm.voiceHours}ч, чат: ${msgStr} / ${config.weeklyNorm.messages}`;
+    const line = `**${displayName}** — голос: ${voiceStr} / ${config.weeklyNorm.voiceHours}ч, чат: ${msgStr} / ${config.weeklyNorm.messages}`;
 
     if (norm.passed) {
       passed.push("✅ " + line);

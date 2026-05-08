@@ -18,12 +18,16 @@ export async function handleCommand(message: Message): Promise<void> {
       return;
     }
 
-    const lines = users.map((u) => {
-      const voiceDone = u.voiceSeconds >= config.weeklyNorm.voiceHours * 3600;
-      const msgDone = u.messages >= config.weeklyNorm.messages;
-      const icon = voiceDone && msgDone ? "✅" : "❌";
-      return `${icon} **${u.username}** — голос: ${formatTime(u.voiceSeconds)}/${config.weeklyNorm.voiceHours}ч, сообщений: ${u.messages}/${config.weeklyNorm.messages}`;
-    });
+    const lines = await Promise.all(
+      users.map(async (u) => {
+        const member = await message.guild?.members.fetch(u.userId).catch(() => null);
+        const displayName = member?.displayName ?? u.username;
+        const voiceDone = u.voiceSeconds >= config.weeklyNorm.voiceHours * 3600;
+        const msgDone = u.messages >= config.weeklyNorm.messages;
+        const icon = voiceDone && msgDone ? "✅" : "❌";
+        return `${icon} **${displayName}** — голос: ${formatTime(u.voiceSeconds)}/${config.weeklyNorm.voiceHours}ч, сообщений: ${u.messages}/${config.weeklyNorm.messages}`;
+      })
+    );
 
     await message.reply(`📊 **Текущая статистика:**\n${lines.join("\n")}`);
     return;
@@ -44,6 +48,7 @@ export async function handleCommand(message: Message): Promise<void> {
       return;
     }
 
+    const displayName = member.displayName;
     const user = getUser(userId, member.user.username);
     const voiceDone = user.voiceSeconds >= config.weeklyNorm.voiceHours * 3600;
     const msgDone = user.messages >= config.weeklyNorm.messages;
@@ -51,7 +56,7 @@ export async function handleCommand(message: Message): Promise<void> {
     const msgIcon = msgDone ? "✅" : "❌";
 
     await message.reply(
-      `📊 **Статистика ${member.user.username} за неделю:**\n` +
+      `📊 **Статистика ${displayName} за неделю:**\n` +
       `${voiceIcon} Голос: ${formatTime(user.voiceSeconds)} / ${config.weeklyNorm.voiceHours}ч\n` +
       `${msgIcon} Сообщений: ${user.messages} / ${config.weeklyNorm.messages}`
     );
@@ -64,9 +69,12 @@ export async function handleCommand(message: Message): Promise<void> {
       await message.reply("Данных нет.");
       return;
     }
-    const lines = users.map(
-      (u) =>
-        `**${u.username}**: ${u.voiceSeconds.toFixed(0)}с в голосе, ${u.messages} сообщ., в канале: ${u.voiceJoinedAt ? "да" : "нет"}`
+    const lines = await Promise.all(
+      users.map(async (u) => {
+        const member = await message.guild?.members.fetch(u.userId).catch(() => null);
+        const displayName = member?.displayName ?? u.username;
+        return `**${displayName}**: ${u.voiceSeconds.toFixed(0)}с в голосе, ${u.messages} сообщ., в канале: ${u.voiceJoinedAt ? "да" : "нет"}`;
+      })
     );
     await message.reply("🔍 **Сырые данные:**\n" + lines.join("\n"));
     return;
