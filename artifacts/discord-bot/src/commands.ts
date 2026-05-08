@@ -88,24 +88,74 @@ export async function handleCommand(message: Message): Promise<void> {
       return;
     }
 
-    const users = getAllUsers();
-    if (users.length === 0) {
-      await message.reply("Статистика пуста — нет данных для отправки.");
+    await guild.channels.fetch();
+    await guild.members.fetch();
+
+    const reportChannels = guild.channels.cache.filter(
+      (ch) => ch.type === 0 && ch.name.toLowerCase().startsWith("рапорт-")
+    );
+
+    if (reportChannels.size === 0) {
+      await message.reply("Каналы `рапорт-*` не найдены на сервере.");
       return;
     }
 
-    await message.reply(`📤 Отправляю рапорты в личные каналы (${users.length} участников)...`);
+    await message.reply(`📤 Отправляю рапорты в ${reportChannels.size} канала(ов)...`);
 
+    const statsMap = new Map(getAllUsers().map((u) => [u.userId, u]));
     let sent = 0;
 
-    for (const u of users) {
-      const member = await guild.members.fetch(u.userId).catch(() => null);
-      const displayName = member?.displayName ?? u.username;
-      await sendPersonalReport(guild, u, displayName);
-      sent++;
+    for (const [, ch] of reportChannels) {
+      const channelName = ch.name.toLowerCase();
+      const usernameFromChannel = channelName.replace("рапорт-", "");
+
+      const member = guild.members.cache.find(
+        (m) => m.user.username.toLowerCase() === usernameFromChannel
+      );
+
+      if (!member) {
+        console.warn(`[TestReport] Участник для канала #${ch.name} не найден`);
+        continue;
+      }
+
+      const userStats = statsMap.get(member.id) ?? {
+        userId: member.id,
+        username: member.user.username,
+        messages: 0,
+        voiceSeconds: 0,
+        voiceJoinedAt: null,
+      };
+
+      const displayName = member.displayName;
+      const norm = userStats.voiceSeconds >= config.weeklyNorm.voiceHours * 3600
+        && userStats.messages >= config.weeklyNorm.messages;
+      const normStr = norm
+        ? "# ✅ Недельная норма выполнена!"
+        : "# ❌ Недельная норма не выполнена!";
+      const h = Math.floor(userStats.voiceSeconds / 3600);
+      const m2 = Math.floor((userStats.voiceSeconds % 3600) / 60);
+
+      const text = [
+        `**Clan member:** ${displayName}`,
+        `**Активность в войсах:** ${h}ч ${m2}м / ${config.weeklyNorm.voiceHours}ч`,
+        `**Активность по сообщениям:** ${userStats.messages} / ${config.weeklyNorm.messages}`,
+        ``,
+        normStr,
+      ].join("\n");
+
+      try {
+        const { ChannelType } = await import("discord.js");
+        if (ch.type === ChannelType.GuildText) {
+          await (ch as import("discord.js").TextChannel).send(text);
+          console.log(`[TestReport] Отправлено в #${ch.name}`);
+          sent++;
+        }
+      } catch (e) {
+        console.warn(`[TestReport] Ошибка отправки в #${ch.name}:`, e);
+      }
     }
 
-    await message.reply(`✅ Готово! Рапорты отправлены: ${sent} участников.`);
+    await message.reply(`✅ Готово! Рапорты отправлены: ${sent} из ${reportChannels.size} каналов.`);
     return;
   }
 
