@@ -19,6 +19,8 @@ export async function sendPersonalReport(guild: Guild, user: UserStats, displayN
     const discordUser = await guild.client.users.fetch(user.userId);
     const username = discordUser.username.toLowerCase();
 
+    await guild.channels.fetch();
+
     const reportChannel = guild.channels.cache.find(
       (ch) =>
         ch.type === ChannelType.GuildText &&
@@ -26,7 +28,7 @@ export async function sendPersonalReport(guild: Guild, user: UserStats, displayN
     ) as TextChannel | undefined;
 
     if (!reportChannel) {
-      console.warn(`[Report] Канал рапорт-${username} не найден, пропускаем`);
+      console.warn(`[Report] Канал рапорт-${username} не найден. Все каналы: ${guild.channels.cache.filter(c => c.type === ChannelType.GuildText).map(c => c.name).join(", ")}`);
       return;
     }
 
