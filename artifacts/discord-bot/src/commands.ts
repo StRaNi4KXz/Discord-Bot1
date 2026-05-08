@@ -3,6 +3,8 @@ import { getAllUsers, getUser } from "./store.js";
 import { config } from "./config.js";
 import { sendPersonalReport } from "./report.js";
 
+let lastTestReportAt: number | null = null;
+
 function formatTime(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
@@ -87,6 +89,14 @@ export async function handleCommand(message: Message): Promise<void> {
       await message.reply("Команда доступна только на сервере.");
       return;
     }
+
+    const now = Date.now();
+    if (lastTestReportAt && now - lastTestReportAt < 60_000) {
+      const secsLeft = Math.ceil((60_000 - (now - lastTestReportAt)) / 1000);
+      await message.reply(`⏳ Подождите ещё ${secsLeft} сек. перед повторным запуском.`);
+      return;
+    }
+    lastTestReportAt = now;
 
     await guild.channels.fetch();
     await guild.members.fetch();
