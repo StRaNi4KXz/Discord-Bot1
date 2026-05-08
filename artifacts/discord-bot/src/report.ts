@@ -1,4 +1,4 @@
-import { EmbedBuilder, TextChannel, Client } from "discord.js";
+import { EmbedBuilder, TextChannel, Client, Guild, ChannelType } from "discord.js";
 import { getAllUsers, resetAllStats, UserStats } from "./store.js";
 import { config } from "./config.js";
 
@@ -14,16 +14,29 @@ function checkNorm(user: UserStats): { passed: boolean; voice: boolean; messages
   return { passed: voice && messages, voice, messages };
 }
 
-async function sendPersonalDM(client: Client, user: UserStats, displayName: string): Promise<void> {
+async function sendPersonalReport(guild: Guild, user: UserStats, displayName: string): Promise<void> {
   try {
-    const discordUser = await client.users.fetch(user.userId);
+    const discordUser = await guild.client.users.fetch(user.userId);
+    const username = discordUser.username.toLowerCase();
+
+    const reportChannel = guild.channels.cache.find(
+      (ch) =>
+        ch.type === ChannelType.GuildText &&
+        ch.name.toLowerCase() === `рапорт-${username}`
+    ) as TextChannel | undefined;
+
+    if (!reportChannel) {
+      console.warn(`[Report] Канал рапорт-${username} не найден, пропускаем`);
+      return;
+    }
+
     const norm = checkNorm(user);
     const voiceStr = formatTime(user.voiceSeconds);
     const normStr = norm.passed
       ? "# ✅ Недельная норма выполнена!"
       : "# ❌ Недельная норма не выполнена!";
 
-    const dm = [
+    const text = [
       `**Clan member:** ${displayName}`,
       `**Активность в войсах:** ${voiceStr} / ${config.weeklyNorm.voiceHours}ч`,
       `**Активность по сообщениям:** ${user.messages} / ${config.weeklyNorm.messages}`,
@@ -31,10 +44,10 @@ async function sendPersonalDM(client: Client, user: UserStats, displayName: stri
       normStr,
     ].join("\n");
 
-    await discordUser.send(dm);
-    console.log(`[DM] Отправлено личное сообщение: ${displayName}`);
-  } catch {
-    console.warn(`[DM] Не удалось отправить ЛС пользователю ${displayName} (закрытые ЛС или ошибка)`);
+    await reportChannel.send(text);
+    console.log(`[Report] Отправлено в канал рапорт-${username}`);
+  } catch (e) {
+    console.warn(`[Report] Ошибка отправки для ${displayName}:`, e);
   }
 }
 
@@ -82,7 +95,9 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
       failed.push("❌ " + line + ` *(${reasons.join(", ")})*`);
     }
 
-    await sendPersonalDM(client, user, displayName);
+    if (guild) {
+      await sendPersonalReport(guild, user, displayName);
+    }
   }
 
   const embed = new EmbedBuilder()
