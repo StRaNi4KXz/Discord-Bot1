@@ -29,6 +29,8 @@ const client = new Client({
 
 loadStats();
 
+const processedMessages = new Set<string>();
+
 client.once(Events.ClientReady, (c) => {
   console.log(`[Bot] Запущен как ${c.user.tag}`);
   console.log(`[Bot] Проверка нормы: каждый понедельник в 15:00`);
@@ -67,6 +69,12 @@ client.on(Events.VoiceStateUpdate, (oldState: VoiceState, newState: VoiceState) 
 
 client.on(Events.MessageCreate, async (message: Message) => {
   if (message.author.bot) return;
+  if (processedMessages.has(message.id)) {
+    console.log(`[Bot] Дубль сообщения проигнорирован: ${message.id}`);
+    return;
+  }
+  processedMessages.add(message.id);
+  setTimeout(() => processedMessages.delete(message.id), 30_000);
 
   const userId = message.author.id;
   const username = message.author.username;

@@ -9,7 +9,14 @@
   {
     "userId": "1203341268739166268",
     "username": "awedow_",
-    "messages": 1,
+    "messages": 3,
+    "voiceSeconds": 0,
+    "voiceJoinedAt": null
+  },
+  {
+    "userId": "1378779357207855126",
+    "username": "qwashka",
+    "messages": 3,
     "voiceSeconds": 0,
     "voiceJoinedAt": null
   }
