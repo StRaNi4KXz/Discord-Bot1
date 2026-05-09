@@ -1,15 +1,17 @@
 {
-  "lastSeenAt": 1778319509815,
+  "lastSeenAt": 1778319706522,
   "users": [
     {
       "userId": "1405271296891289752",
       "username": "suretomato",
-      "messages": 12,
+      "messages": 19,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 12,
+      "totalMessages": 19,
       "totalVoiceSeconds": 0,
-      "excluded": false
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0
     },
     {
       "userId": "1378779357207855126",
@@ -19,17 +21,21 @@
       "voiceJoinedAt": null,
       "totalMessages": 26,
       "totalVoiceSeconds": 32.231,
-      "excluded": false
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0
     },
     {
       "userId": "1203341268739166268",
       "username": "awedow_",
-      "messages": 57,
+      "messages": 59,
       "voiceSeconds": 1267.7730000000001,
       "voiceJoinedAt": null,
-      "totalMessages": 57,
+      "totalMessages": 59,
       "totalVoiceSeconds": 1267.7730000000001,
-      "excluded": false
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0
     },
     {
       "userId": "1409542909505830943",
@@ -39,7 +45,9 @@
       "voiceJoinedAt": null,
       "totalMessages": 7,
       "totalVoiceSeconds": 339.582,
-      "excluded": false
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0
     },
     {
       "userId": "1055307960668147813",
@@ -49,7 +57,9 @@
       "voiceJoinedAt": null,
       "totalMessages": 9,
       "totalVoiceSeconds": 0,
-      "excluded": false
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0
     },
     {
       "userId": "1240997456343208047",
@@ -59,7 +69,9 @@
       "voiceJoinedAt": null,
       "totalMessages": 9,
       "totalVoiceSeconds": 0,
-      "excluded": false
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0
     },
     {
       "userId": "1464468384555995178",
@@ -69,7 +81,9 @@
       "voiceJoinedAt": null,
       "totalMessages": 15,
       "totalVoiceSeconds": 0,
-      "excluded": false
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0
     },
     {
       "userId": "1472091449842729085",
@@ -79,7 +93,9 @@
       "voiceJoinedAt": null,
       "totalMessages": 15,
       "totalVoiceSeconds": 1991.0590000000002,
-      "excluded": false
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0
     },
     {
       "userId": "1466085546458615891",
@@ -89,7 +105,9 @@
       "voiceJoinedAt": null,
       "totalMessages": 0,
       "totalVoiceSeconds": 388.37100000000004,
-      "excluded": false
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0
     },
     {
       "userId": "1250411846947835920",
@@ -99,7 +117,9 @@
       "voiceJoinedAt": null,
       "totalMessages": 5,
       "totalVoiceSeconds": 685.0550000000001,
-      "excluded": false
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0
     },
     {
       "userId": "1297465830812160052",
@@ -109,7 +129,9 @@
       "voiceJoinedAt": null,
       "totalMessages": 0,
       "totalVoiceSeconds": 676.566,
-      "excluded": false
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0
     },
     {
       "userId": "1494234908812513444",
@@ -119,17 +141,21 @@
       "voiceJoinedAt": null,
       "totalMessages": 1,
       "totalVoiceSeconds": 0,
-      "excluded": false
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0
     },
     {
       "userId": "1093749704115896411",
       "username": "roman_bmgo1",
-      "messages": 5,
+      "messages": 13,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 5,
+      "totalMessages": 13,
       "totalVoiceSeconds": 0,
-      "excluded": false
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0
     }
   ]
 }

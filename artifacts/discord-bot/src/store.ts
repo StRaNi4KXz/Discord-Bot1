@@ -14,6 +14,8 @@ export interface UserStats {
   totalMessages: number;
   totalVoiceSeconds: number;
   excluded: boolean;
+  streak: number;
+  bestStreak: number;
 }
 
 interface DataFile {
@@ -54,6 +56,8 @@ export function loadStats(): void {
       u.totalMessages = u.totalMessages ?? u.messages;
       u.totalVoiceSeconds = u.totalVoiceSeconds ?? u.voiceSeconds;
       u.excluded = u.excluded ?? false;
+      u.streak = u.streak ?? 0;
+      u.bestStreak = u.bestStreak ?? 0;
       stats.set(u.userId, u);
     }
     console.log(`[Store] Загружена статистика: ${stats.size} участников, lastSeenAt: ${lastSeenAt ? new Date(lastSeenAt).toISOString() : "нет"}`);
@@ -95,9 +99,24 @@ export function getUser(userId: string, username: string): UserStats {
       totalMessages: 0,
       totalVoiceSeconds: 0,
       excluded: false,
+      streak: 0,
+      bestStreak: 0,
     });
   }
   return stats.get(userId)!;
+}
+
+export function updateUserStreak(userId: string, passed: boolean): void {
+  const user = stats.get(userId);
+  if (!user) return;
+  if (passed) {
+    user.streak += 1;
+    if (user.streak > user.bestStreak) {
+      user.bestStreak = user.streak;
+    }
+  } else {
+    user.streak = 0;
+  }
 }
 
 export function getAllUsers(): UserStats[] {

@@ -1,5 +1,5 @@
 import { EmbedBuilder, TextChannel, Client, Guild, ChannelType } from "discord.js";
-import { getActiveUsers, resetAllStats, UserStats } from "./store.js";
+import { getActiveUsers, resetAllStats, updateUserStreak, UserStats } from "./store.js";
 import { config } from "./config.js";
 import { getNorm } from "./dynamicConfig.js";
 import { saveWeekSnapshot } from "./history.js";
@@ -44,10 +44,15 @@ export async function sendPersonalReport(guild: Guild, user: UserStats, displayN
       ? "# ✅ Недельная норма выполнена!"
       : "# ❌ Недельная норма не выполнена!";
 
+    const streakLine = user.streak > 0
+      ? `**🔥 Стрик:** ${user.streak} ${user.streak === 1 ? "неделя" : user.streak < 5 ? "недели" : "недель"} подряд${user.bestStreak > user.streak ? ` (рекорд: ${user.bestStreak})` : user.bestStreak === user.streak && user.streak > 1 ? " 🏆 новый рекорд!" : ""}`
+      : `**🔥 Стрик:** 0 (норма не выполнена)`;
+
     const text = [
       `**Clan member:** ${displayName}`,
       `**Активность в войсах:** ${voiceStr} / ${normNorm.voiceHours}ч`,
       `**Активность по сообщениям:** ${user.messages} / ${normNorm.messages}`,
+      streakLine,
       ``,
       normStr,
     ].join("\n");
@@ -96,6 +101,8 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
     const voiceStr = formatTime(user.voiceSeconds);
     const msgStr = `${user.messages} сообщ.`;
     const line = `**${displayName}** — голос: ${voiceStr} / ${norm.voiceHours}ч, чат: ${msgStr} / ${norm.messages}`;
+
+    updateUserStreak(user.userId, normResult.passed);
 
     historyUsers.push({
       userId: user.userId,

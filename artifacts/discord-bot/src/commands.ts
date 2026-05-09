@@ -7,7 +7,7 @@ import {
   ButtonInteraction,
   ChannelType,
 } from "discord.js";
-import { getAllUsers, getActiveUsers, getUser, resetUserStats, excludeUser, includeUser } from "./store.js";
+import { getAllUsers, getActiveUsers, getUser, resetUserStats, excludeUser, includeUser, type UserStats } from "./store.js";
 import { config } from "./config.js";
 import { getNorm, setVoiceHours, setMessages } from "./dynamicConfig.js";
 import { sendPersonalReport } from "./report.js";
@@ -24,21 +24,23 @@ function formatTime(seconds: number): string {
 // ─── !статус ─────────────────────────────────────────────────────────────────
 
 export function buildStatusEmbed(
+  user: UserStats,
   displayName: string,
-  messages: number,
-  voiceSeconds: number,
-  totalMessages: number,
-  totalVoiceSeconds: number,
   mode: "week" | "all"
 ): { embeds: [EmbedBuilder]; components: [ActionRowBuilder<ButtonBuilder>] } {
   const norm = getNorm();
   const isWeek = mode === "week";
-  const msgCount = isWeek ? messages : totalMessages;
-  const voiceSec = isWeek ? voiceSeconds : totalVoiceSeconds;
+  const msgCount = isWeek ? user.messages : user.totalMessages;
+  const voiceSec = isWeek ? user.voiceSeconds : user.totalVoiceSeconds;
 
   const voiceIcon = voiceSec >= norm.voiceHours * 3600 ? "✅" : "❌";
   const msgIcon = msgCount >= norm.messages ? "✅" : "❌";
   const passed = voiceSec >= norm.voiceHours * 3600 && msgCount >= norm.messages;
+
+  const streakText = user.streak > 0
+    ? `🔥 ${user.streak} ${user.streak === 1 ? "неделя" : user.streak < 5 ? "недели" : "недель"} подряд`
+    : "🔥 0";
+  const bestText = user.bestStreak > 0 ? `Рекорд: ${user.bestStreak}` : "Рекорда нет";
 
   const embed = new EmbedBuilder()
     .setTitle(`📊 Статистика — ${displayName}`)
@@ -53,20 +55,23 @@ export function buildStatusEmbed(
         name: `${msgIcon} Сообщений`,
         value: `${msgCount} / ${isWeek ? norm.messages : "∞"}`,
         inline: true,
+      },
+      {
+        name: "🔥 Стрик",
+        value: `${streakText}\n${bestText}`,
+        inline: true,
       }
     )
     .setColor(isWeek ? (passed ? 0x57f287 : 0xed4245) : 0x5865f2)
     .setTimestamp();
 
-  const encoded = `${messages}_${Math.round(voiceSeconds)}_${totalMessages}_${Math.round(totalVoiceSeconds)}_${encodeURIComponent(displayName)}`;
-
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
-      .setCustomId(`status_week_${encoded}`)
+      .setCustomId(`status_week_${user.userId}`)
       .setLabel("📅 Неделя")
       .setStyle(isWeek ? ButtonStyle.Primary : ButtonStyle.Secondary),
     new ButtonBuilder()
-      .setCustomId(`status_all_${encoded}`)
+      .setCustomId(`status_all_${user.userId}`)
       .setLabel("🗓️ За всё время")
       .setStyle(!isWeek ? ButtonStyle.Primary : ButtonStyle.Secondary)
   );
@@ -77,17 +82,13 @@ export function buildStatusEmbed(
 export async function handleStatusButton(interaction: ButtonInteraction): Promise<void> {
   const id = interaction.customId;
   const isWeek = id.startsWith("status_week_");
-  const payload = id.replace("status_week_", "").replace("status_all_", "");
-  const parts = payload.split("_");
+  const userId = id.replace("status_week_", "").replace("status_all_", "");
 
-  const messages = parseInt(parts[0], 10);
-  const voiceSeconds = parseFloat(parts[1]);
-  const totalMessages = parseInt(parts[2], 10);
-  const totalVoiceSeconds = parseFloat(parts[3]);
-  const displayName = decodeURIComponent(parts.slice(4).join("_"));
+  const member = await interaction.guild?.members.fetch(userId).catch(() => null);
+  const displayName = member?.displayName ?? userId;
+  const user = getUser(userId, member?.user.username ?? userId);
 
-  const reply = buildStatusEmbed(displayName, messages, voiceSeconds, totalMessages, totalVoiceSeconds, isWeek ? "week" : "all");
-  await interaction.update(reply);
+  await interaction.update(buildStatusEmbed(user, displayName, isWeek ? "week" : "all"));
 }
 
 // ─── !топ ────────────────────────────────────────────────────────────────────
@@ -114,7 +115,8 @@ export function buildTopEmbed(
       : null;
     const icon = medals[i] ?? `${i + 1}.`;
     const status = passed === null ? "" : passed ? " ✅" : " ❌";
-    return `${icon} **${u.username}** — голос: ${formatTime(voiceSec)}, сообщ: ${msgCount}${status}`;
+    const streak = u.streak > 0 ? ` 🔥${u.streak}` : "";
+    return `${icon} **${u.username}** — голос: ${formatTime(voiceSec)}, сообщ: ${msgCount}${status}${streak}`;
   });
 
   const embed = new EmbedBuilder()
@@ -256,14 +258,7 @@ export async function handleCommand(message: Message): Promise<void> {
     }
 
     const user = getUser(targetUserId, displayName);
-    const reply = buildStatusEmbed(
-      displayName,
-      user.messages,
-      user.voiceSeconds,
-      user.totalMessages,
-      user.totalVoiceSeconds,
-      "week"
-    );
+    const reply = buildStatusEmbed(user, displayName, "week");
     await message.reply(reply);
     return;
   }
