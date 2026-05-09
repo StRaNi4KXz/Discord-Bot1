@@ -4,6 +4,8 @@ import {
   Events,
   VoiceState,
   Message,
+  Interaction,
+  ButtonInteraction,
 } from "discord.js";
 import cron from "node-cron";
 import { config } from "./config.js";
@@ -17,7 +19,7 @@ import {
 } from "./store.js";
 import { isSpam } from "./antiFarm.js";
 import { sendWeeklyReport } from "./report.js";
-import { handleCommand } from "./commands.js";
+import { handleCommand, handleStatusButton } from "./commands.js";
 import { catchUpMissedMessages } from "./catchup.js";
 
 const client = new Client({
@@ -112,6 +114,14 @@ const cronExpr = `${config.checkMinute} ${config.checkHour} * * ${config.checkDa
 cron.schedule(cronExpr, async () => {
   console.log("[Cron] Запуск еженедельной проверки нормы...");
   await sendWeeklyReport(client);
+});
+
+client.on(Events.InteractionCreate, async (interaction: Interaction) => {
+  if (!interaction.isButton()) return;
+  const btn = interaction as ButtonInteraction;
+  if (btn.customId.startsWith("status_week_") || btn.customId.startsWith("status_all_")) {
+    await handleStatusButton(btn);
+  }
 });
 
 // Save lastSeenAt on graceful shutdown

@@ -11,6 +11,8 @@ export interface UserStats {
   messages: number;
   voiceSeconds: number;
   voiceJoinedAt: number | null;
+  totalMessages: number;
+  totalVoiceSeconds: number;
 }
 
 interface DataFile {
@@ -35,7 +37,6 @@ export function loadStats(): void {
     const raw = fs.readFileSync(DATA_FILE, "utf-8");
     const parsed = JSON.parse(raw);
 
-    // Support old format (plain array) and new format ({ lastSeenAt, users })
     let users: UserStats[];
     if (Array.isArray(parsed)) {
       users = parsed;
@@ -49,6 +50,8 @@ export function loadStats(): void {
     stats.clear();
     for (const u of users) {
       u.voiceJoinedAt = null;
+      u.totalMessages = u.totalMessages ?? u.messages;
+      u.totalVoiceSeconds = u.totalVoiceSeconds ?? u.voiceSeconds;
       stats.set(u.userId, u);
     }
     console.log(`[Store] Загружена статистика: ${stats.size} участников, lastSeenAt: ${lastSeenAt ? new Date(lastSeenAt).toISOString() : "нет"}`);
@@ -87,6 +90,8 @@ export function getUser(userId: string, username: string): UserStats {
       messages: 0,
       voiceSeconds: 0,
       voiceJoinedAt: null,
+      totalMessages: 0,
+      totalVoiceSeconds: 0,
     });
   }
   return stats.get(userId)!;
@@ -101,6 +106,7 @@ export function resetAllStats(): void {
     user.messages = 0;
     user.voiceSeconds = 0;
     user.voiceJoinedAt = null;
+    // totalMessages and totalVoiceSeconds are never reset
   }
   saveStats();
 }
@@ -117,6 +123,7 @@ export function recordVoiceLeave(userId: string, username: string): void {
     user.voiceJoinedAt = null;
     if (seconds >= 30) {
       user.voiceSeconds += seconds;
+      user.totalVoiceSeconds += seconds;
       saveStats();
     }
   }
@@ -125,5 +132,6 @@ export function recordVoiceLeave(userId: string, username: string): void {
 export function incrementMessages(userId: string, username: string): void {
   const user = getUser(userId, username);
   user.messages += 1;
+  user.totalMessages += 1;
   saveStats();
 }

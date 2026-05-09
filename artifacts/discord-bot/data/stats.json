@@ -1,96 +1,122 @@
 {
-  "lastSeenAt": 1778318432587,
+  "lastSeenAt": 1778318942757,
   "users": [
     {
       "userId": "1405271296891289752",
       "username": "suretomato",
       "messages": 11,
       "voiceSeconds": 0,
-      "voiceJoinedAt": null
+      "voiceJoinedAt": null,
+      "totalMessages": 11,
+      "totalVoiceSeconds": 0
     },
     {
       "userId": "1378779357207855126",
       "username": "qwashka",
       "messages": 26,
       "voiceSeconds": 32.231,
-      "voiceJoinedAt": null
+      "voiceJoinedAt": null,
+      "totalMessages": 26,
+      "totalVoiceSeconds": 32.231
     },
     {
       "userId": "1203341268739166268",
       "username": "awedow_",
       "messages": 52,
       "voiceSeconds": 1267.7730000000001,
-      "voiceJoinedAt": null
+      "voiceJoinedAt": null,
+      "totalMessages": 52,
+      "totalVoiceSeconds": 1267.7730000000001
     },
     {
       "userId": "1409542909505830943",
       "username": "zxcobraxd",
       "messages": 7,
       "voiceSeconds": 339.582,
-      "voiceJoinedAt": null
+      "voiceJoinedAt": null,
+      "totalMessages": 7,
+      "totalVoiceSeconds": 339.582
     },
     {
       "userId": "1055307960668147813",
       "username": "laks11680",
       "messages": 9,
       "voiceSeconds": 0,
-      "voiceJoinedAt": null
+      "voiceJoinedAt": null,
+      "totalMessages": 9,
+      "totalVoiceSeconds": 0
     },
     {
       "userId": "1240997456343208047",
       "username": "gaikayt.",
       "messages": 9,
       "voiceSeconds": 0,
-      "voiceJoinedAt": null
+      "voiceJoinedAt": null,
+      "totalMessages": 9,
+      "totalVoiceSeconds": 0
     },
     {
       "userId": "1464468384555995178",
       "username": "speedbronzik_65084",
       "messages": 15,
       "voiceSeconds": 0,
-      "voiceJoinedAt": null
+      "voiceJoinedAt": null,
+      "totalMessages": 15,
+      "totalVoiceSeconds": 0
     },
     {
       "userId": "1472091449842729085",
       "username": "bil215777",
       "messages": 15,
       "voiceSeconds": 1991.0590000000002,
-      "voiceJoinedAt": null
+      "voiceJoinedAt": null,
+      "totalMessages": 15,
+      "totalVoiceSeconds": 1991.0590000000002
     },
     {
       "userId": "1466085546458615891",
       "username": "scantzoo3817",
       "messages": 0,
       "voiceSeconds": 388.37100000000004,
-      "voiceJoinedAt": null
+      "voiceJoinedAt": null,
+      "totalMessages": 0,
+      "totalVoiceSeconds": 388.37100000000004
     },
     {
       "userId": "1250411846947835920",
       "username": "uteelp_54001",
       "messages": 5,
       "voiceSeconds": 685.0550000000001,
-      "voiceJoinedAt": null
+      "voiceJoinedAt": null,
+      "totalMessages": 5,
+      "totalVoiceSeconds": 685.0550000000001
     },
     {
       "userId": "1297465830812160052",
       "username": "sh1isui_82894",
       "messages": 0,
       "voiceSeconds": 676.566,
-      "voiceJoinedAt": null
+      "voiceJoinedAt": null,
+      "totalMessages": 0,
+      "totalVoiceSeconds": 676.566
     },
     {
       "userId": "1494234908812513444",
       "username": "micaaska_96880",
       "messages": 1,
       "voiceSeconds": 0,
-      "voiceJoinedAt": null
+      "voiceJoinedAt": null,
+      "totalMessages": 1,
+      "totalVoiceSeconds": 0
     },
     {
       "userId": "1093749704115896411",
       "username": "roman_bmgo1",
       "messages": 5,
       "voiceSeconds": 0,
-      "voiceJoinedAt": null
+      "voiceJoinedAt": null,
+      "totalMessages": 5,
+      "totalVoiceSeconds": 0
     }
   ]
 }
