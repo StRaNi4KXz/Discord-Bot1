@@ -13,7 +13,13 @@ export interface UserStats {
   voiceJoinedAt: number | null;
 }
 
+interface DataFile {
+  lastSeenAt: number | null;
+  users: UserStats[];
+}
+
 const stats = new Map<string, UserStats>();
+let lastSeenAt: number | null = null;
 
 function ensureDataDir(): void {
   const dir = path.dirname(DATA_FILE);
@@ -27,13 +33,25 @@ export function loadStats(): void {
   if (!fs.existsSync(DATA_FILE)) return;
   try {
     const raw = fs.readFileSync(DATA_FILE, "utf-8");
-    const arr: UserStats[] = JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+
+    // Support old format (plain array) and new format ({ lastSeenAt, users })
+    let users: UserStats[];
+    if (Array.isArray(parsed)) {
+      users = parsed;
+      lastSeenAt = null;
+    } else {
+      const data = parsed as DataFile;
+      users = data.users ?? [];
+      lastSeenAt = data.lastSeenAt ?? null;
+    }
+
     stats.clear();
-    for (const u of arr) {
+    for (const u of users) {
       u.voiceJoinedAt = null;
       stats.set(u.userId, u);
     }
-    console.log(`[Store] Загружена статистика: ${stats.size} участников`);
+    console.log(`[Store] Загружена статистика: ${stats.size} участников, lastSeenAt: ${lastSeenAt ? new Date(lastSeenAt).toISOString() : "нет"}`);
   } catch (e) {
     console.error("[Store] Ошибка загрузки статистики:", e);
   }
@@ -42,14 +60,23 @@ export function loadStats(): void {
 export function saveStats(): void {
   ensureDataDir();
   try {
-    const arr = Array.from(stats.values()).map((u) => ({
-      ...u,
-      voiceJoinedAt: null,
-    }));
-    fs.writeFileSync(DATA_FILE, JSON.stringify(arr, null, 2), "utf-8");
+    const data: DataFile = {
+      lastSeenAt,
+      users: Array.from(stats.values()).map((u) => ({ ...u, voiceJoinedAt: null })),
+    };
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
   } catch (e) {
     console.error("[Store] Ошибка сохранения статистики:", e);
   }
+}
+
+export function getLastSeenAt(): number | null {
+  return lastSeenAt;
+}
+
+export function updateLastSeenAt(): void {
+  lastSeenAt = Date.now();
+  saveStats();
 }
 
 export function getUser(userId: string, username: string): UserStats {

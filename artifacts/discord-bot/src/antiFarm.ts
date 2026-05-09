@@ -2,14 +2,14 @@ import { config } from "./config.js";
 
 const recentMessages = new Map<string, { content: string; timestamp: number }[]>();
 
-export function isSpam(userId: string, content: string): boolean {
+export function isSpam(userId: string, content: string, atTimestamp?: number): boolean {
   const trimmed = content.trim();
 
   if (trimmed.length < config.antiFarm.minMessageLength) {
     return true;
   }
 
-  const now = Date.now();
+  const ts = atTimestamp ?? Date.now();
   const window = config.antiFarm.duplicateWindowMs;
 
   if (!recentMessages.has(userId)) {
@@ -17,8 +17,7 @@ export function isSpam(userId: string, content: string): boolean {
   }
 
   const history = recentMessages.get(userId)!;
-
-  const filtered = history.filter((m) => now - m.timestamp < window);
+  const filtered = history.filter((m) => ts - m.timestamp < window);
   recentMessages.set(userId, filtered);
 
   const isDuplicate = filtered.some(
@@ -29,7 +28,7 @@ export function isSpam(userId: string, content: string): boolean {
     return true;
   }
 
-  filtered.push({ content: trimmed, timestamp: now });
+  filtered.push({ content: trimmed, timestamp: ts });
 
   return false;
 }

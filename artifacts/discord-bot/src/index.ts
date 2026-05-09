@@ -12,10 +12,13 @@ import {
   recordVoiceLeave,
   incrementMessages,
   loadStats,
+  getLastSeenAt,
+  updateLastSeenAt,
 } from "./store.js";
 import { isSpam } from "./antiFarm.js";
 import { sendWeeklyReport } from "./report.js";
 import { handleCommand } from "./commands.js";
+import { catchUpMissedMessages } from "./catchup.js";
 
 const client = new Client({
   intents: [
@@ -31,7 +34,7 @@ loadStats();
 
 const processedMessages = new Set<string>();
 
-client.once(Events.ClientReady, (c) => {
+client.once(Events.ClientReady, async (c) => {
   console.log(`[Bot] Запущен как ${c.user.tag}`);
   console.log(`[Bot] Проверка нормы: каждый понедельник в 15:00`);
   if (!config.reportChannelId) {
@@ -39,6 +42,21 @@ client.once(Events.ClientReady, (c) => {
       "[Bot] DISCORD_REPORT_CHANNEL_ID не задан — отчёты не будут отправляться"
     );
   }
+
+  const since = getLastSeenAt();
+  if (since !== null) {
+    await catchUpMissedMessages(client, since);
+  } else {
+    console.log("[CatchUp] Первый запуск, история не восстанавливается");
+  }
+
+  // Save current time as lastSeenAt baseline
+  updateLastSeenAt();
+
+  // Periodically update lastSeenAt so we don't re-scan too far back on restart
+  setInterval(() => {
+    updateLastSeenAt();
+  }, 5 * 60 * 1000);
 });
 
 client.on(Events.VoiceStateUpdate, (oldState: VoiceState, newState: VoiceState) => {
@@ -95,6 +113,15 @@ cron.schedule(cronExpr, async () => {
   console.log("[Cron] Запуск еженедельной проверки нормы...");
   await sendWeeklyReport(client);
 });
+
+// Save lastSeenAt on graceful shutdown
+function shutdown() {
+  console.log("[Bot] Завершение работы, сохраняю lastSeenAt...");
+  updateLastSeenAt();
+  process.exit(0);
+}
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
 
 client.login(config.token).catch((err) => {
   console.error("[Bot] Ошибка авторизации:", err.message);

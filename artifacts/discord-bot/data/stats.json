@@ -1,23 +1,96 @@
-[
-  {
-    "userId": "1405271296891289752",
-    "username": "suretomato",
-    "messages": 1,
-    "voiceSeconds": 0,
-    "voiceJoinedAt": null
-  },
-  {
-    "userId": "1203341268739166268",
-    "username": "awedow_",
-    "messages": 3,
-    "voiceSeconds": 0,
-    "voiceJoinedAt": null
-  },
-  {
-    "userId": "1378779357207855126",
-    "username": "qwashka",
-    "messages": 3,
-    "voiceSeconds": 0,
-    "voiceJoinedAt": null
-  }
-]
+{
+  "lastSeenAt": 1778318132587,
+  "users": [
+    {
+      "userId": "1405271296891289752",
+      "username": "suretomato",
+      "messages": 11,
+      "voiceSeconds": 0,
+      "voiceJoinedAt": null
+    },
+    {
+      "userId": "1378779357207855126",
+      "username": "qwashka",
+      "messages": 26,
+      "voiceSeconds": 32.231,
+      "voiceJoinedAt": null
+    },
+    {
+      "userId": "1203341268739166268",
+      "username": "awedow_",
+      "messages": 52,
+      "voiceSeconds": 1267.7730000000001,
+      "voiceJoinedAt": null
+    },
+    {
+      "userId": "1409542909505830943",
+      "username": "zxcobraxd",
+      "messages": 7,
+      "voiceSeconds": 339.582,
+      "voiceJoinedAt": null
+    },
+    {
+      "userId": "1055307960668147813",
+      "username": "laks11680",
+      "messages": 9,
+      "voiceSeconds": 0,
+      "voiceJoinedAt": null
+    },
+    {
+      "userId": "1240997456343208047",
+      "username": "gaikayt.",
+      "messages": 9,
+      "voiceSeconds": 0,
+      "voiceJoinedAt": null
+    },
+    {
+      "userId": "1464468384555995178",
+      "username": "speedbronzik_65084",
+      "messages": 8,
+      "voiceSeconds": 0,
+      "voiceJoinedAt": null
+    },
+    {
+      "userId": "1472091449842729085",
+      "username": "bil215777",
+      "messages": 15,
+      "voiceSeconds": 1991.0590000000002,
+      "voiceJoinedAt": null
+    },
+    {
+      "userId": "1466085546458615891",
+      "username": "scantzoo3817",
+      "messages": 0,
+      "voiceSeconds": 388.37100000000004,
+      "voiceJoinedAt": null
+    },
+    {
+      "userId": "1250411846947835920",
+      "username": "uteelp_54001",
+      "messages": 5,
+      "voiceSeconds": 685.0550000000001,
+      "voiceJoinedAt": null
+    },
+    {
+      "userId": "1297465830812160052",
+      "username": "sh1isui_82894",
+      "messages": 0,
+      "voiceSeconds": 676.566,
+      "voiceJoinedAt": null
+    },
+    {
+      "userId": "1494234908812513444",
+      "username": "micaaska_96880",
+      "messages": 1,
+      "voiceSeconds": 0,
+      "voiceJoinedAt": null
+    },
+    {
+      "userId": "1093749704115896411",
+      "username": "roman_bmgo1",
+      "messages": 5,
+      "voiceSeconds": 0,
+      "voiceJoinedAt": null
+    }
+  ]
+}
