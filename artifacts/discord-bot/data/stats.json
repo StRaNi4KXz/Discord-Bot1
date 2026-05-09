@@ -1,5 +1,5 @@
 {
-  "lastSeenAt": 1778361802680,
+  "lastSeenAt": 1778362402679,
   "users": [
     {
       "userId": "1405271296891289752",
@@ -196,11 +196,11 @@
     {
       "userId": "1401634581844590843",
       "username": "bronzeboat57080",
-      "messages": 5,
-      "voiceSeconds": 1019.927,
+      "messages": 6,
+      "voiceSeconds": 1164.929,
       "voiceJoinedAt": null,
-      "totalMessages": 5,
-      "totalVoiceSeconds": 1019.927,
+      "totalMessages": 6,
+      "totalVoiceSeconds": 1164.929,
       "excluded": false,
       "streak": 0,
       "bestStreak": 0
