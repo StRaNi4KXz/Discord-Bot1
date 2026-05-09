@@ -1,5 +1,5 @@
 {
-  "lastSeenAt": 1778363002679,
+  "lastSeenAt": 1778368031832,
   "users": [
     {
       "userId": "1405271296891289752",
@@ -28,10 +28,10 @@
     {
       "userId": "1203341268739166268",
       "username": "awedow_",
-      "messages": 116,
+      "messages": 153,
       "voiceSeconds": 1522.4340000000002,
       "voiceJoinedAt": null,
-      "totalMessages": 116,
+      "totalMessages": 153,
       "totalVoiceSeconds": 1522.4340000000002,
       "excluded": false,
       "streak": 0,
@@ -64,10 +64,10 @@
     {
       "userId": "1240997456343208047",
       "username": "gaikayt.",
-      "messages": 16,
+      "messages": 55,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 16,
+      "totalMessages": 55,
       "totalVoiceSeconds": 0,
       "excluded": false,
       "streak": 0,
@@ -196,11 +196,23 @@
     {
       "userId": "1401634581844590843",
       "username": "bronzeboat57080",
-      "messages": 6,
+      "messages": 12,
       "voiceSeconds": 2097.001,
       "voiceJoinedAt": null,
-      "totalMessages": 6,
+      "totalMessages": 12,
       "totalVoiceSeconds": 2097.001,
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0
+    },
+    {
+      "userId": "1283154550286585969",
+      "username": "kudryashok._52356",
+      "messages": 2,
+      "voiceSeconds": 0,
+      "voiceJoinedAt": null,
+      "totalMessages": 2,
+      "totalVoiceSeconds": 0,
       "excluded": false,
       "streak": 0,
       "bestStreak": 0

@@ -182,3 +182,9 @@ export function incrementMessages(userId: string, username: string): void {
   user.totalMessages += 1;
   saveStats();
 }
+export function addVoiceSeconds(userId: string, username: string, seconds: number): void {
+  const user = getUser(userId, username);
+  user.voiceSeconds += seconds;
+  user.totalVoiceSeconds += seconds;
+  saveStats();
+}

@@ -7,7 +7,7 @@ import {
   ButtonInteraction,
   ChannelType,
 } from "discord.js";
-import { getAllUsers, getActiveUsers, getUser, resetUserStats, excludeUser, includeUser, type UserStats } from "./store.js";
+import { getAllUsers, getActiveUsers, getUser, resetUserStats, excludeUser, includeUser, addVoiceSeconds, type UserStats } from "./store.js";
 import { config } from "./config.js";
 import { getNorm, setVoiceHours, setMessages } from "./dynamicConfig.js";
 import { sendPersonalReport } from "./report.js";
@@ -300,6 +300,22 @@ export async function handleCommand(message: Message): Promise<void> {
     return;
   }
 
+  // ── !часы ──
+  const hoursMatch = content.match(/^!часы <@!?(\d+)> (\d+(?:[.,]\d+)?)(м|ч)?$/i);
+  if (hoursMatch) {
+    const userId = hoursMatch[1];
+    const amount = parseFloat(hoursMatch[2].replace(",", "."));
+    const unit = hoursMatch[3]?.toLowerCase() ?? "м";
+    const seconds = unit === "ч" ? amount * 3600 : amount * 60;
+    const member = await message.guild?.members.fetch(userId).catch(() => null);
+    if (!member) {
+      await message.reply("Участник не найден.");
+      return;
+    }
+    addVoiceSeconds(userId, member.user.username, seconds);
+    await message.reply(`✅ **${member.displayName}** добавлено **${amount}${unit === "ч" ? "ч" : "м"}** голосового времени.`);
+    return;
+  }
   // ── !сброс ──
   if (content.startsWith("!сброс") || content.startsWith("!reset")) {
     const parts = content.split(" ");
