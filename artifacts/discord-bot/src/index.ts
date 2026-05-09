@@ -17,9 +17,11 @@ import {
   getLastSeenAt,
   updateLastSeenAt,
 } from "./store.js";
+import { loadDynamicConfig } from "./dynamicConfig.js";
+import { loadHistory } from "./history.js";
 import { isSpam } from "./antiFarm.js";
 import { sendWeeklyReport } from "./report.js";
-import { handleCommand, handleStatusButton } from "./commands.js";
+import { handleCommand, handleStatusButton, handleTopButton } from "./commands.js";
 import { catchUpMissedMessages } from "./catchup.js";
 
 const client = new Client({
@@ -33,6 +35,8 @@ const client = new Client({
 });
 
 loadStats();
+loadDynamicConfig();
+loadHistory();
 
 const processedMessages = new Set<string>();
 
@@ -52,10 +56,8 @@ client.once(Events.ClientReady, async (c) => {
     console.log("[CatchUp] Первый запуск, история не восстанавливается");
   }
 
-  // Save current time as lastSeenAt baseline
   updateLastSeenAt();
 
-  // Periodically update lastSeenAt so we don't re-scan too far back on restart
   setInterval(() => {
     updateLastSeenAt();
   }, 5 * 60 * 1000);
@@ -110,21 +112,23 @@ client.on(Events.MessageCreate, async (message: Message) => {
   }
 });
 
+client.on(Events.InteractionCreate, async (interaction: Interaction) => {
+  if (!interaction.isButton()) return;
+  const btn = interaction as ButtonInteraction;
+
+  if (btn.customId.startsWith("status_week_") || btn.customId.startsWith("status_all_")) {
+    await handleStatusButton(btn);
+  } else if (btn.customId === "top_week" || btn.customId === "top_all") {
+    await handleTopButton(btn);
+  }
+});
+
 const cronExpr = `${config.checkMinute} ${config.checkHour} * * ${config.checkDay}`;
 cron.schedule(cronExpr, async () => {
   console.log("[Cron] Запуск еженедельной проверки нормы...");
   await sendWeeklyReport(client);
 });
 
-client.on(Events.InteractionCreate, async (interaction: Interaction) => {
-  if (!interaction.isButton()) return;
-  const btn = interaction as ButtonInteraction;
-  if (btn.customId.startsWith("status_week_") || btn.customId.startsWith("status_all_")) {
-    await handleStatusButton(btn);
-  }
-});
-
-// Save lastSeenAt on graceful shutdown
 function shutdown() {
   console.log("[Bot] Завершение работы, сохраняю lastSeenAt...");
   updateLastSeenAt();

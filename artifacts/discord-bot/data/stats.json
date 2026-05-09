@@ -1,14 +1,15 @@
 {
-  "lastSeenAt": 1778318942757,
+  "lastSeenAt": 1778319509815,
   "users": [
     {
       "userId": "1405271296891289752",
       "username": "suretomato",
-      "messages": 11,
+      "messages": 12,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 11,
-      "totalVoiceSeconds": 0
+      "totalMessages": 12,
+      "totalVoiceSeconds": 0,
+      "excluded": false
     },
     {
       "userId": "1378779357207855126",
@@ -17,16 +18,18 @@
       "voiceSeconds": 32.231,
       "voiceJoinedAt": null,
       "totalMessages": 26,
-      "totalVoiceSeconds": 32.231
+      "totalVoiceSeconds": 32.231,
+      "excluded": false
     },
     {
       "userId": "1203341268739166268",
       "username": "awedow_",
-      "messages": 56,
+      "messages": 57,
       "voiceSeconds": 1267.7730000000001,
       "voiceJoinedAt": null,
-      "totalMessages": 56,
-      "totalVoiceSeconds": 1267.7730000000001
+      "totalMessages": 57,
+      "totalVoiceSeconds": 1267.7730000000001,
+      "excluded": false
     },
     {
       "userId": "1409542909505830943",
@@ -35,7 +38,8 @@
       "voiceSeconds": 339.582,
       "voiceJoinedAt": null,
       "totalMessages": 7,
-      "totalVoiceSeconds": 339.582
+      "totalVoiceSeconds": 339.582,
+      "excluded": false
     },
     {
       "userId": "1055307960668147813",
@@ -44,7 +48,8 @@
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 9,
-      "totalVoiceSeconds": 0
+      "totalVoiceSeconds": 0,
+      "excluded": false
     },
     {
       "userId": "1240997456343208047",
@@ -53,7 +58,8 @@
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 9,
-      "totalVoiceSeconds": 0
+      "totalVoiceSeconds": 0,
+      "excluded": false
     },
     {
       "userId": "1464468384555995178",
@@ -62,7 +68,8 @@
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 15,
-      "totalVoiceSeconds": 0
+      "totalVoiceSeconds": 0,
+      "excluded": false
     },
     {
       "userId": "1472091449842729085",
@@ -71,7 +78,8 @@
       "voiceSeconds": 1991.0590000000002,
       "voiceJoinedAt": null,
       "totalMessages": 15,
-      "totalVoiceSeconds": 1991.0590000000002
+      "totalVoiceSeconds": 1991.0590000000002,
+      "excluded": false
     },
     {
       "userId": "1466085546458615891",
@@ -80,7 +88,8 @@
       "voiceSeconds": 388.37100000000004,
       "voiceJoinedAt": null,
       "totalMessages": 0,
-      "totalVoiceSeconds": 388.37100000000004
+      "totalVoiceSeconds": 388.37100000000004,
+      "excluded": false
     },
     {
       "userId": "1250411846947835920",
@@ -89,7 +98,8 @@
       "voiceSeconds": 685.0550000000001,
       "voiceJoinedAt": null,
       "totalMessages": 5,
-      "totalVoiceSeconds": 685.0550000000001
+      "totalVoiceSeconds": 685.0550000000001,
+      "excluded": false
     },
     {
       "userId": "1297465830812160052",
@@ -98,7 +108,8 @@
       "voiceSeconds": 676.566,
       "voiceJoinedAt": null,
       "totalMessages": 0,
-      "totalVoiceSeconds": 676.566
+      "totalVoiceSeconds": 676.566,
+      "excluded": false
     },
     {
       "userId": "1494234908812513444",
@@ -107,7 +118,8 @@
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 1,
-      "totalVoiceSeconds": 0
+      "totalVoiceSeconds": 0,
+      "excluded": false
     },
     {
       "userId": "1093749704115896411",
@@ -116,7 +128,8 @@
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 5,
-      "totalVoiceSeconds": 0
+      "totalVoiceSeconds": 0,
+      "excluded": false
     }
   ]
 }

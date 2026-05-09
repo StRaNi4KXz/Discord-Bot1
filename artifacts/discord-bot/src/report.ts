@@ -1,6 +1,8 @@
 import { EmbedBuilder, TextChannel, Client, Guild, ChannelType } from "discord.js";
-import { getAllUsers, resetAllStats, UserStats } from "./store.js";
+import { getActiveUsers, resetAllStats, UserStats } from "./store.js";
 import { config } from "./config.js";
+import { getNorm } from "./dynamicConfig.js";
+import { saveWeekSnapshot } from "./history.js";
 
 function formatTime(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -9,8 +11,9 @@ function formatTime(seconds: number): string {
 }
 
 function checkNorm(user: UserStats): { passed: boolean; voice: boolean; messages: boolean } {
-  const voice = user.voiceSeconds >= config.weeklyNorm.voiceHours * 3600;
-  const messages = user.messages >= config.weeklyNorm.messages;
+  const norm = getNorm();
+  const voice = user.voiceSeconds >= norm.voiceHours * 3600;
+  const messages = user.messages >= norm.messages;
   return { passed: voice && messages, voice, messages };
 }
 
@@ -35,6 +38,7 @@ export async function sendPersonalReport(guild: Guild, user: UserStats, displayN
     }
 
     const norm = checkNorm(user);
+    const normNorm = getNorm();
     const voiceStr = formatTime(user.voiceSeconds);
     const normStr = norm.passed
       ? "# ✅ Недельная норма выполнена!"
@@ -42,8 +46,8 @@ export async function sendPersonalReport(guild: Guild, user: UserStats, displayN
 
     const text = [
       `**Clan member:** ${displayName}`,
-      `**Активность в войсах:** ${voiceStr} / ${config.weeklyNorm.voiceHours}ч`,
-      `**Активность по сообщениям:** ${user.messages} / ${config.weeklyNorm.messages}`,
+      `**Активность в войсах:** ${voiceStr} / ${normNorm.voiceHours}ч`,
+      `**Активность по сообщениям:** ${user.messages} / ${normNorm.messages}`,
       ``,
       normStr,
     ].join("\n");
@@ -68,7 +72,9 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
     return;
   }
 
-  const users = getAllUsers();
+  const users = getActiveUsers();
+  const norm = getNorm();
+
   if (users.length === 0) {
     await (channel as TextChannel).send("📊 Статистика за неделю пуста — активности не было.");
     return;
@@ -78,6 +84,7 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
 
   const passed: string[] = [];
   const failed: string[] = [];
+  const historyUsers: import("./history.js").WeekEntry[] = [];
 
   for (const user of users) {
     const member = guild
@@ -85,17 +92,25 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
       : null;
     const displayName = member?.displayName ?? user.username;
 
-    const norm = checkNorm(user);
+    const normResult = checkNorm(user);
     const voiceStr = formatTime(user.voiceSeconds);
     const msgStr = `${user.messages} сообщ.`;
-    const line = `**${displayName}** — голос: ${voiceStr} / ${config.weeklyNorm.voiceHours}ч, чат: ${msgStr} / ${config.weeklyNorm.messages}`;
+    const line = `**${displayName}** — голос: ${voiceStr} / ${norm.voiceHours}ч, чат: ${msgStr} / ${norm.messages}`;
 
-    if (norm.passed) {
+    historyUsers.push({
+      userId: user.userId,
+      displayName,
+      messages: user.messages,
+      voiceSeconds: user.voiceSeconds,
+      passed: normResult.passed,
+    });
+
+    if (normResult.passed) {
       passed.push("✅ " + line);
     } else {
       const reasons: string[] = [];
-      if (!norm.voice) reasons.push("недостаточно времени в голосовом");
-      if (!norm.messages) reasons.push("недостаточно сообщений");
+      if (!normResult.voice) reasons.push("недостаточно времени в голосовом");
+      if (!normResult.messages) reasons.push("недостаточно сообщений");
       failed.push("❌ " + line + ` *(${reasons.join(", ")})*`);
     }
 
@@ -108,7 +123,7 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
     .setTitle("📋 Еженедельная проверка нормы активности")
     .setColor(failed.length === 0 ? 0x57f287 : 0xed4245)
     .setTimestamp()
-    .setFooter({ text: `Норма: ${config.weeklyNorm.voiceHours}ч голос + ${config.weeklyNorm.messages} сообщений` });
+    .setFooter({ text: `Норма: ${norm.voiceHours}ч голос + ${norm.messages} сообщений` });
 
   if (passed.length > 0) {
     embed.addFields({
@@ -125,6 +140,14 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
   }
 
   await (channel as TextChannel).send({ embeds: [embed] });
+
+  // Save history snapshot before resetting
+  saveWeekSnapshot({
+    weekEnding: new Date().toISOString().slice(0, 10),
+    voiceHoursNorm: norm.voiceHours,
+    messagesNorm: norm.messages,
+    users: historyUsers,
+  });
 
   resetAllStats();
   console.log("[Report] Отчёт отправлен, статистика сброшена.");

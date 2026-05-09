@@ -13,6 +13,7 @@ export interface UserStats {
   voiceJoinedAt: number | null;
   totalMessages: number;
   totalVoiceSeconds: number;
+  excluded: boolean;
 }
 
 interface DataFile {
@@ -52,6 +53,7 @@ export function loadStats(): void {
       u.voiceJoinedAt = null;
       u.totalMessages = u.totalMessages ?? u.messages;
       u.totalVoiceSeconds = u.totalVoiceSeconds ?? u.voiceSeconds;
+      u.excluded = u.excluded ?? false;
       stats.set(u.userId, u);
     }
     console.log(`[Store] Загружена статистика: ${stats.size} участников, lastSeenAt: ${lastSeenAt ? new Date(lastSeenAt).toISOString() : "нет"}`);
@@ -92,6 +94,7 @@ export function getUser(userId: string, username: string): UserStats {
       voiceJoinedAt: null,
       totalMessages: 0,
       totalVoiceSeconds: 0,
+      excluded: false,
     });
   }
   return stats.get(userId)!;
@@ -101,18 +104,44 @@ export function getAllUsers(): UserStats[] {
   return Array.from(stats.values());
 }
 
+export function getActiveUsers(): UserStats[] {
+  return Array.from(stats.values()).filter((u) => !u.excluded);
+}
+
 export function resetAllStats(): void {
   for (const user of stats.values()) {
     user.messages = 0;
     user.voiceSeconds = 0;
     user.voiceJoinedAt = null;
-    // totalMessages and totalVoiceSeconds are never reset
   }
+  saveStats();
+}
+
+export function resetUserStats(userId: string): boolean {
+  const user = stats.get(userId);
+  if (!user) return false;
+  user.messages = 0;
+  user.voiceSeconds = 0;
+  user.voiceJoinedAt = null;
+  saveStats();
+  return true;
+}
+
+export function excludeUser(userId: string, username: string): void {
+  const user = getUser(userId, username);
+  user.excluded = true;
+  saveStats();
+}
+
+export function includeUser(userId: string, username: string): void {
+  const user = getUser(userId, username);
+  user.excluded = false;
   saveStats();
 }
 
 export function recordVoiceJoin(userId: string, username: string): void {
   const user = getUser(userId, username);
+  if (user.excluded) return;
   user.voiceJoinedAt = Date.now();
 }
 
@@ -121,7 +150,7 @@ export function recordVoiceLeave(userId: string, username: string): void {
   if (user.voiceJoinedAt !== null) {
     const seconds = (Date.now() - user.voiceJoinedAt) / 1000;
     user.voiceJoinedAt = null;
-    if (seconds >= 30) {
+    if (!user.excluded && seconds >= 30) {
       user.voiceSeconds += seconds;
       user.totalVoiceSeconds += seconds;
       saveStats();
@@ -131,6 +160,7 @@ export function recordVoiceLeave(userId: string, username: string): void {
 
 export function incrementMessages(userId: string, username: string): void {
   const user = getUser(userId, username);
+  if (user.excluded) return;
   user.messages += 1;
   user.totalMessages += 1;
   saveStats();
