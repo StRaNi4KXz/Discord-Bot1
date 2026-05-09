@@ -1,13 +1,13 @@
 {
-  "lastSeenAt": 1778357772257,
+  "lastSeenAt": 1778361502679,
   "users": [
     {
       "userId": "1405271296891289752",
       "username": "suretomato",
-      "messages": 90,
+      "messages": 93,
       "voiceSeconds": 81.033,
       "voiceJoinedAt": null,
-      "totalMessages": 90,
+      "totalMessages": 93,
       "totalVoiceSeconds": 81.033,
       "excluded": false,
       "streak": 0,
@@ -196,10 +196,10 @@
     {
       "userId": "1401634581844590843",
       "username": "bronzeboat57080",
-      "messages": 3,
+      "messages": 5,
       "voiceSeconds": 1019.927,
       "voiceJoinedAt": null,
-      "totalMessages": 3,
+      "totalMessages": 5,
       "totalVoiceSeconds": 1019.927,
       "excluded": false,
       "streak": 0,
