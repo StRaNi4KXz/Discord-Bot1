@@ -12,6 +12,7 @@ export interface UserStats {
   totalMessages: number;
   totalVoiceSeconds: number;
   excluded: boolean;
+  isCurator: boolean;
   streak: number;
   bestStreak: number;
   curatorStats: {
@@ -61,8 +62,10 @@ export function loadStats(): void {
       u.totalMessages = u.totalMessages ?? u.messages;
       u.totalVoiceSeconds = u.totalVoiceSeconds ?? u.voiceSeconds;
       u.excluded = u.excluded ?? false;
+      u.isCurator = u.isCurator ?? false;
       u.streak = u.streak ?? 0;
-      u.bestStreak = u.bestStreak ?? 0;u.curatorStats = u.curatorStats ?? { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0 };
+      u.bestStreak = u.bestStreak ?? 0;
+      u.curatorStats = u.curatorStats ?? { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0 };
       stats.set(u.userId, u);
     }
     console.log(`[Store] Загружена статистика: ${stats.size} участников, lastSeenAt: ${lastSeenAt ? new Date(lastSeenAt).toISOString() : "нет"}`);
@@ -104,8 +107,10 @@ export function getUser(userId: string, username: string): UserStats {
       totalMessages: 0,
       totalVoiceSeconds: 0,
       excluded: false,
+      isCurator: false,
       streak: 0,
-      bestStreak: 0, curatorStats: { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0 },
+      bestStreak: 0,
+      curatorStats: { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0 },
     });
   }
   return stats.get(userId)!;
@@ -136,7 +141,8 @@ export function resetAllStats(): void {
   for (const user of stats.values()) {
     user.messages = 0;
     user.voiceSeconds = 0;
-    user.voiceJoinedAt = null; user.curatorStats = { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0 };
+    user.voiceJoinedAt = null;
+    user.curatorStats = { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0 };
   }
   saveStats();
 }
@@ -160,6 +166,12 @@ export function excludeUser(userId: string, username: string): void {
 export function includeUser(userId: string, username: string): void {
   const user = getUser(userId, username);
   user.excluded = false;
+  saveStats();
+}
+
+export function setCurator(userId: string, username: string, value: boolean): void {
+  const user = getUser(userId, username);
+  user.isCurator = value;
   saveStats();
 }
 
@@ -189,9 +201,22 @@ export function incrementMessages(userId: string, username: string): void {
   user.totalMessages += 1;
   saveStats();
 }
+
 export function addVoiceSeconds(userId: string, username: string, seconds: number): void {
   const user = getUser(userId, username);
   user.voiceSeconds += seconds;
   user.totalVoiceSeconds += seconds;
+  saveStats();
+}
+
+export type CuratorStatKey = keyof UserStats["curatorStats"];
+
+export function incrementCuratorStat(
+  userId: string,
+  username: string,
+  stat: CuratorStatKey
+): void {
+  const user = getUser(userId, username);
+  user.curatorStats[stat] += 1;
   saveStats();
 }

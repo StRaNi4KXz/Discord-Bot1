@@ -6,6 +6,7 @@ import {
   Message,
   Interaction,
   ButtonInteraction,
+  ChannelType,
 } from "discord.js";
 import cron from "node-cron";
 import { config } from "./config.js";
@@ -16,6 +17,8 @@ import {
   loadStats,
   getLastSeenAt,
   updateLastSeenAt,
+  incrementCuratorStat,
+  type CuratorStatKey,
 } from "./store.js";
 import { loadDynamicConfig } from "./dynamicConfig.js";
 import { loadHistory } from "./history.js";
@@ -74,7 +77,10 @@ client.on(Events.VoiceStateUpdate, (oldState: VoiceState, newState: VoiceState) 
 
   const joined = !oldState.channelId && newState.channelId;
   const left = oldState.channelId && !newState.channelId;
-  const switched = oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId;
+  const switched =
+    oldState.channelId &&
+    newState.channelId &&
+    oldState.channelId !== newState.channelId;
 
   if (joined) {
     recordVoiceJoin(userId, username);
@@ -101,6 +107,28 @@ client.on(Events.MessageCreate, async (message: Message) => {
   const userId = message.author.id;
   const username = message.author.username;
   const content = message.content;
+
+  // ── Рапорты кураторов ──
+  const channelName = "name" in message.channel
+    ? (message.channel as any).name as string
+    : "";
+
+  if (channelName.toLowerCase().startsWith("рапорт-")) {
+    const lower = content.trim().toLowerCase();
+    let stat: CuratorStatKey | null = null;
+
+    if (lower.startsWith("+обзвон"))                                              stat = "obzvon";
+    else if (lower.startsWith("+проверка км") || lower.startsWith("+проверкакм")) stat = "proverkaKm";
+    else if (lower.startsWith("+проверка"))                                       stat = "proverka";
+    else if (lower.startsWith("+тикет"))                                          stat = "tiket";
+    else if (lower.startsWith("+список"))                                         stat = "spisok";
+
+  if (stat) {
+    incrementCuratorStat(userId, username, stat);
+    console.log(`[Curator] ${username} +1 ${stat} в #${channelName}`);
+    message.react("✅").catch(() => {});
+  }
+  return;
 
   if (content.startsWith("!")) {
     await handleCommand(message);

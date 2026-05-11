@@ -7,9 +7,19 @@ import {
   ButtonInteraction,
   ChannelType,
 } from "discord.js";
-import { getAllUsers, getActiveUsers, getUser, resetUserStats, excludeUser, includeUser, addVoiceSeconds, type UserStats } from "./store.js";
+import {
+  getAllUsers,
+  getActiveUsers,
+  getUser,
+  resetUserStats,
+  excludeUser,
+  includeUser,
+  addVoiceSeconds,
+  setCurator,
+  type UserStats,
+} from "./store.js";
 import { config } from "./config.js";
-import { getNorm, setVoiceHours, setMessages } from "./dynamicConfig.js";
+import { getNorm, setVoiceHours, setMessages, setCuratorNorm } from "./dynamicConfig.js";
 import { sendPersonalReport } from "./report.js";
 import { getHistory } from "./history.js";
 
@@ -40,30 +50,32 @@ export function buildStatusEmbed(
   const bestText = user.bestStreak > 0 ? `${user.bestStreak}` : "отсутствуют";
   const normLine = passed ? "## ✅ Недельная норма выполнена" : "## ❌ Недельная норма не выполнена";
 
-  const desc = isWeek ? [
-    "📆 За текущую неделю",
-    "================================",
-    `Войсы - ${voiceIcon}`,
-    `${formatTime(voiceSec)} / ${norm.voiceHours}ч`,
-    "================================",
-    `Сообщения - ${msgIcon}`,
-    `${msgCount} / ${norm.messages}`,
-    "|————————————————————|",
-    `Количество стриков - ${streakText} 🔥`,
-    `Рекорды - ${bestText}`,
-    normLine,
-  ].join("\n") : [
-    "🗓️ За всё время",
-    "================================",
-    `Войсы - ${voiceIcon}`,
-    `${formatTime(voiceSec)}`,
-    "================================",
-    `Сообщения - ${msgIcon}`,
-    `${msgCount}`,
-    "|————————————————————|",
-    `Количество стриков - ${streakText} 🔥`,
-    `Рекорды - ${bestText}`,
-  ].join("\n");
+  const desc = isWeek
+    ? [
+        "📆 За текущую неделю",
+        "================================",
+        `Войсы - ${voiceIcon}`,
+        `${formatTime(voiceSec)} / ${norm.voiceHours}ч`,
+        "================================",
+        `Сообщения - ${msgIcon}`,
+        `${msgCount} / ${norm.messages}`,
+        "|————————————————————|",
+        `Количество стриков - ${streakText} 🔥`,
+        `Рекорды - ${bestText}`,
+        normLine,
+      ].join("\n")
+    : [
+        "🗓️ За всё время",
+        "================================",
+        `Войсы - ${voiceIcon}`,
+        `${formatTime(voiceSec)}`,
+        "================================",
+        `Сообщения - ${msgIcon}`,
+        `${msgCount}`,
+        "|————————————————————|",
+        `Количество стриков - ${streakText} 🔥`,
+        `Рекорды - ${bestText}`,
+      ].join("\n");
 
   const embed = new EmbedBuilder()
     .setTitle(`📊 Статистика — ${displayName}`)
@@ -107,8 +119,12 @@ export function buildTopEmbed(
   const users = getActiveUsers();
 
   const sorted = [...users].sort((a, b) => {
-    const scoreA = (isWeek ? a.voiceSeconds : a.totalVoiceSeconds) + (isWeek ? a.messages : a.totalMessages) * 60;
-    const scoreB = (isWeek ? b.voiceSeconds : b.totalVoiceSeconds) + (isWeek ? b.messages : b.totalMessages) * 60;
+    const scoreA =
+      (isWeek ? a.voiceSeconds : a.totalVoiceSeconds) +
+      (isWeek ? a.messages : a.totalMessages) * 60;
+    const scoreB =
+      (isWeek ? b.voiceSeconds : b.totalVoiceSeconds) +
+      (isWeek ? b.messages : b.totalMessages) * 60;
     return scoreB - scoreA;
   });
 
@@ -130,7 +146,11 @@ export function buildTopEmbed(
     .setDescription(lines.length > 0 ? lines.join("\n") : "Пока нет данных")
     .setColor(0xfee75c)
     .setTimestamp()
-    .setFooter({ text: isWeek ? `Норма: ${norm.voiceHours}ч голос + ${norm.messages} сообщений` : "Накопленная статистика" });
+    .setFooter({
+      text: isWeek
+        ? `Норма: ${norm.voiceHours}ч голос + ${norm.messages} сообщений`
+        : "Накопленная статистика",
+    });
 
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
@@ -172,7 +192,10 @@ function buildHistoryEmbed(): EmbedBuilder {
     const total = week.users.length;
     const lines = week.users
       .slice(0, 8)
-      .map((u) => `${u.passed ? "✅" : "❌"} **${u.displayName}** — голос: ${formatTime(u.voiceSeconds)}, сообщ: ${u.messages}`);
+      .map(
+        (u) =>
+          `${u.passed ? "✅" : "❌"} **${u.displayName}** — голос: ${formatTime(u.voiceSeconds)}, сообщ: ${u.messages}`
+      );
 
     if (total > 8) lines.push(`_...и ещё ${total - 8} участников_`);
 
@@ -240,6 +263,29 @@ export async function handleCommand(message: Message): Promise<void> {
     return;
   }
 
+  // ── !норма куратор установить X Y ──
+  const curatorNormMatch = content.match(
+    /^!норма куратор установить (обзвон|тикет|проверка|проверкакм|список) (\d+)$/i
+  );
+  if (curatorNormMatch) {
+    const keyMap: Record<string, keyof ReturnType<typeof getNorm>["curator"]> = {
+      обзвон: "obzvon",
+      тикет: "tiket",
+      проверка: "proverka",
+      проверкакм: "proverkaKm",
+      список: "spisok",
+    };
+    const key = keyMap[curatorNormMatch[1].toLowerCase()];
+    const value = parseInt(curatorNormMatch[2], 10);
+    if (!key || isNaN(value) || value < 0) {
+      await message.reply("❌ Некорректное значение.");
+      return;
+    }
+    setCuratorNorm(key, value);
+    await message.reply(`✅ Норма куратора **${curatorNormMatch[1]}** установлена: **${value}** в неделю.`);
+    return;
+  }
+
   // ── !статус ──
   if (content.startsWith("!статус") || content.startsWith("!status")) {
     const parts = content.split(" ");
@@ -281,6 +327,209 @@ export async function handleCommand(message: Message): Promise<void> {
     return;
   }
 
+  // ── !куратор ──
+  if (content.startsWith("!куратор")) {
+    const parts = content.split(" ");
+    const mention = parts[1];
+    if (!mention || !mention.startsWith("<@")) {
+      await message.reply("Укажите участника: `!куратор @username`");
+      return;
+    }
+    const userId = mention.replace(/[<@!>]/g, "");
+    const member = await message.guild?.members.fetch(userId).catch(() => null);
+    if (!member) {
+      await message.reply("Участник не найден.");
+      return;
+    }
+    const user = getUser(userId, member.user.username);
+    const newValue = !user.isCurator;
+    setCurator(userId, member.user.username, newValue);
+    await message.reply(
+      newValue
+        ? `✅ **${member.displayName}** теперь куратор — будет получать расширенный рапорт.`
+        : `↩️ **${member.displayName}** больше не куратор — будет получать обычный рапорт.`
+    );
+    return;
+  }
+  
+  // ── !вышестоящие ──
+  if (content === "!вышестоящие") {
+    const curators = getActiveUsers().filter((u) => u.isCurator);
+
+    if (curators.length === 0) {
+      await message.reply("Кураторов пока нет. Назначь командой `!куратор @ник`.");
+      return;
+    }
+
+    const norm = getNorm();
+    const cn = norm.curator;
+
+    const lines = await Promise.all(
+      curators.map(async (u) => {
+        const member = await message.guild?.members.fetch(u.userId).catch(() => null);
+        const displayName = member?.displayName ?? u.username;
+        const cs = u.curatorStats;
+
+        const voiceOk    = u.voiceSeconds >= norm.voiceHours * 3600;
+        const msgOk      = u.messages >= norm.messages;
+        const obzvonOk   = cs.obzvon   >= cn.obzvon;
+        const tiketOk    = cs.tiket    >= cn.tiket;
+        const proverkaOk = cs.proverka >= cn.proverka;
+        const spisokOk   = cs.spisok   >= cn.spisok;
+        const allOk      = voiceOk && msgOk && obzvonOk && tiketOk && proverkaOk && spisokOk;
+
+        const icon = allOk ? "✅" : "❌";
+        const h = Math.floor(u.voiceSeconds / 3600);
+        const m = Math.floor((u.voiceSeconds % 3600) / 60);
+
+        return (
+          `${icon} **${displayName}**\n` +
+          `> 🎙 ${h}ч ${m}м/${norm.voiceHours}ч  💬 ${u.messages}/${norm.messages}\n` +
+          `> 📞 Обзвоны: ${cs.obzvon}/${cn.obzvon}  🎫 Тикеты: ${cs.tiket}/${cn.tiket}  🔍 Проверки: ${cs.proverka}/${cn.proverka}  📋 Списки: ${cs.spisok}/${cn.spisok}`
+        );
+      })
+    );
+
+    const embed = new EmbedBuilder()
+      .setTitle("🛡 Статистика кураторов — текущая неделя")
+      .setDescription(lines.join("\n\n"))
+      .setColor(0x5865f2)
+      .setTimestamp()
+      .setFooter({
+        text: `Норма: голос ${norm.voiceHours}ч | сообщ ${norm.messages} | обзвоны ${cn.obzvon} | тикеты ${cn.tiket} | проверки ${cn.proverka} | списки ${cn.spisok}`,
+      });
+
+    await message.reply({ embeds: [embed] });
+    return;
+  }
+  
+  // ── !рапорткуратор ──
+  if (content === "!рапорткуратор") {
+    const guild = message.guild;
+    if (!guild) {
+      await message.reply("Команда доступна только на сервере.");
+      return;
+    }
+
+    const curators = getActiveUsers().filter((u) => u.isCurator);
+    if (curators.length === 0) {
+      await message.reply("Нет назначенных кураторов. Используй `!куратор @ник` чтобы назначить.");
+      return;
+    }
+
+    await guild.channels.fetch();
+    await guild.members.fetch();
+
+    const curatorMap = new Map(curators.map((u) => [u.userId, u]));
+
+    const reportChannels = guild.channels.cache.filter(
+      (ch) => ch.type === 0 && ch.name.toLowerCase().startsWith("рапорт-")
+    );
+
+    if (reportChannels.size === 0) {
+      await message.reply("Каналы `рапорт-*` не найдены на сервере.");
+      return;
+    }
+
+    await message.reply(`📤 Отправляю рапорты ${curators.length} куратор(ам)...`);
+
+    let sent = 0;
+    const alreadySent = new Set<string>();
+
+    for (const [, ch] of reportChannels) {
+      const channelName = ch.name.toLowerCase();
+      const usernameFromChannel = channelName.replace("рапорт-", "");
+
+      const matchesChannel = (m: import("discord.js").GuildMember) => {
+        const nick = m.nickname?.toLowerCase() ?? "";
+        const display = m.displayName.toLowerCase();
+        const user = m.user.username.toLowerCase();
+        return (
+          nick === usernameFromChannel ||
+          nick.startsWith(usernameFromChannel) ||
+          display === usernameFromChannel ||
+          display.startsWith(usernameFromChannel) ||
+          user === usernameFromChannel
+        );
+      };
+
+      const member =
+        guild.members.cache.find(matchesChannel) ??
+        (await guild.members
+          .search({ query: usernameFromChannel, limit: 10 })
+          .then((r) => r.find(matchesChannel) ?? null)
+          .catch(() => null));
+
+      if (!member) continue;
+      if (!curatorMap.has(member.id)) continue;
+      if (alreadySent.has(member.id)) continue;
+
+      const userStats = curatorMap.get(member.id)!;
+      const displayName = member.displayName;
+      const norm = getNorm();
+      const cn = norm.curator;
+      const cs = userStats.curatorStats;
+
+      const voiceOk    = userStats.voiceSeconds >= norm.voiceHours * 3600;
+      const msgOk      = userStats.messages >= norm.messages;
+      const obzvonOk   = cs.obzvon   >= cn.obzvon;
+      const tiketOk    = cs.tiket    >= cn.tiket;
+      const proverkaOk = cs.proverka >= cn.proverka;
+      const spisokOk   = cs.spisok   >= cn.spisok;
+      const allOk = voiceOk && msgOk && obzvonOk && tiketOk && proverkaOk && spisokOk;
+
+      const now = new Date();
+      const dow = now.getDay() === 0 ? 6 : now.getDay() - 1;
+      const monday = new Date(now); monday.setDate(now.getDate() - dow);
+      const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+      const fmt = (d: Date) =>
+        `${d.getDate().toString().padStart(2, "0")}.${(d.getMonth() + 1).toString().padStart(2, "0")}`;
+
+      const h = Math.floor(userStats.voiceSeconds / 3600);
+      const m2 = Math.floor((userStats.voiceSeconds % 3600) / 60);
+
+      const text = [
+        `# **Куратор: ${displayName}**`,
+        `## Отчет с ${fmt(monday)}-${fmt(sunday)}`,
+        `================================`,
+        `**> Активность в голосовых каналах - ${voiceOk ? "✅" : "❌"}`,
+        `> ${h}ч ${m2}м / ${norm.voiceHours}ч`,
+        `================================`,
+        `> Активность в текстовых каналах - ${msgOk ? "✅" : "❌"}`,
+        `> ${userStats.messages} / ${norm.messages}`,
+        `================================`,
+        `> Норма по обзвонам - ${obzvonOk ? "✅" : "❌"}`,
+        `> ${cs.obzvon} / ${cn.obzvon}`,
+        `================================`,
+        `> Норма по спискам - ${spisokOk ? "✅" : "❌"}`,
+        `> ${cs.spisok} / ${cn.spisok}`,
+        `================================`,
+        `> Норма по проверкам - ${proverkaOk ? "✅" : "❌"}`,
+        `> ${cs.proverka} / ${cn.proverka}`,
+        `================================`,
+        `> Норма по тикетам - ${tiketOk ? "✅" : "❌"}`,
+        `> ${cs.tiket} / ${cn.tiket}**`,
+        `================================`,
+        allOk ? `### ✅ Недельная норма выполнена` : `### ❌ Недельная норма не выполнена`,
+      ].join("\n");
+
+      try {
+        const { TextChannel } = await import("discord.js");
+        if (ch.type === 0) {
+          await (ch as import("discord.js").TextChannel).send(text);
+          alreadySent.add(member.id);
+          sent++;
+          console.log(`[CuratorReport] Отправлено куратору ${displayName} в #${ch.name}`);
+        }
+      } catch (e) {
+        console.warn(`[CuratorReport] Ошибка отправки в #${ch.name}:`, e);
+      }
+    }
+
+    await message.reply(`✅ Готово! Рапорты отправлены: ${sent} куратор(ам).`);
+    return;
+  }
+  
   // ── !исключить ──
   if (content.startsWith("!исключить") || content.startsWith("!exclude")) {
     const parts = content.split(" ");
@@ -305,7 +554,7 @@ export async function handleCommand(message: Message): Promise<void> {
     }
     return;
   }
-  
+
   // ── !км ──
   if (content === "!км") {
     const users = getActiveUsers();
@@ -321,6 +570,7 @@ export async function handleCommand(message: Message): Promise<void> {
     }
     return;
   }
+
   // ── !часы ──
   const hoursMatch = content.match(/^!часы <@!?(\d+)> (\d+(?:[.,]\d+)?)(м|ч)?$/i);
   if (hoursMatch) {
@@ -334,10 +584,12 @@ export async function handleCommand(message: Message): Promise<void> {
       return;
     }
     addVoiceSeconds(userId, member.user.username, seconds);
-    await message.reply(`✅ **${member.displayName}** добавлено **${amount}${unit === "ч" ? "ч" : "м"}** голосового времени.`);
+    await message.reply(
+      `✅ **${member.displayName}** добавлено **${amount}${unit === "ч" ? "ч" : "м"}** голосового времени.`
+    );
     return;
   }
-  
+
   // ── !сброс ──
   if (content.startsWith("!сброс") || content.startsWith("!reset")) {
     const parts = content.split(" ");
@@ -354,7 +606,9 @@ export async function handleCommand(message: Message): Promise<void> {
     }
     const ok = resetUserStats(userId);
     if (ok) {
-      await message.reply(`♻️ Недельная статистика **${member.displayName}** сброшена. (Общая история сохранена.)`);
+      await message.reply(
+        `♻️ Недельная статистика **${member.displayName}** сброшена. (Общая история сохранена.)`
+      );
     } else {
       await message.reply(`У **${member.displayName}** пока нет статистики.`);
     }
@@ -373,7 +627,8 @@ export async function handleCommand(message: Message): Promise<void> {
         const member = await message.guild?.members.fetch(u.userId).catch(() => null);
         const displayName = member?.displayName ?? u.username;
         const excl = u.excluded ? " 🚫исключён" : "";
-        return `**${displayName}**${excl}: голос ${u.voiceSeconds.toFixed(0)}с (всего: ${u.totalVoiceSeconds.toFixed(0)}с), ${u.messages} сообщ. (всего: ${u.totalMessages})`;
+        const cur = u.isCurator ? " 🛡куратор" : "";
+        return `**${displayName}**${excl}${cur}: голос ${u.voiceSeconds.toFixed(0)}с (всего: ${u.totalVoiceSeconds.toFixed(0)}с), ${u.messages} сообщ. (всего: ${u.totalMessages})`;
       })
     );
     await message.reply("🔍 **Сырые данные:**\n" + lines.join("\n"));
@@ -439,7 +694,8 @@ export async function handleCommand(message: Message): Promise<void> {
 
       const member =
         guild.members.cache.find(matchesChannel) ??
-        (await guild.members.search({ query: usernameFromChannel, limit: 10 })
+        (await guild.members
+          .search({ query: usernameFromChannel, limit: 10 })
           .then((r) => r.find(matchesChannel) ?? null)
           .catch(() => null));
 
@@ -450,48 +706,29 @@ export async function handleCommand(message: Message): Promise<void> {
       }
 
       const displayName = member?.displayName ?? usernameFromChannel;
-      const userStats = (member ? statsMap.get(member.id) : undefined)
-        ?? statsMap.get(usernameFromChannel)
-        ?? { userId: member?.id ?? "", username: usernameFromChannel, messages: 0, voiceSeconds: 0, voiceJoinedAt: null, totalMessages: 0, totalVoiceSeconds: 0, excluded: false };
+      const userStats =
+        (member ? statsMap.get(member.id) : undefined) ??
+        statsMap.get(usernameFromChannel) ?? {
+          userId: member?.id ?? "",
+          username: usernameFromChannel,
+          messages: 0,
+          voiceSeconds: 0,
+          voiceJoinedAt: null,
+          totalMessages: 0,
+          totalVoiceSeconds: 0,
+          excluded: false,
+          isCurator: false,
+          streak: 0,
+          bestStreak: 0,
+          curatorStats: { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0 },
+        };
 
       if (userStats.excluded) continue;
 
-      const normPassed = userStats.voiceSeconds >= norm.voiceHours * 3600 && userStats.messages >= norm.messages;
-      const voiceIcon = userStats.voiceSeconds >= norm.voiceHours * 3600 ? "✅" : "❌";
-      const msgIcon = userStats.messages >= norm.messages ? "✅" : "❌";
-      const normStr = normPassed ? "### ✅ Недельная норма выполнена" : "### ❌ Недельная норма не выполнена";
-      const h = Math.floor(userStats.voiceSeconds / 3600);
-      const m2 = Math.floor((userStats.voiceSeconds % 3600) / 60);
-
-      const weekStart = new Date();
-      const dow = weekStart.getDay() === 0 ? 6 : weekStart.getDay() - 1;
-      weekStart.setDate(weekStart.getDate() - dow);
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 6);
-      const fmtD = (d: Date) => `${d.getDate().toString().padStart(2, "0")}.${(d.getMonth()+1).toString().padStart(2, "0")}`;
-
-      const text = [
-        `# **Участник: ${displayName}**`,
-        `## Отчет с ${fmtD(weekStart)}-${fmtD(weekEnd)}`,
-        `================================`,
-        `**> Активность в голосовых каналах - ${voiceIcon}`,
-        `> ${h}ч ${m2}м / ${norm.voiceHours}ч`,
-        `================================`,
-        `> Активность в текстовых каналах - ${msgIcon}`,
-        `> ${userStats.messages} / ${norm.messages}**`,
-        `================================`,
-        normStr,
-      ].join("\n");
-
-      try {
-        if (ch.type === ChannelType.GuildText) {
-          await (ch as import("discord.js").TextChannel).send(text);
-          console.log(`[TestReport] Отправлено в #${ch.name} (участник: ${displayName})`);
-          alreadySent.add(dedupeKey);
-          sent++;
-        }
-      } catch (e) {
-        console.warn(`[TestReport] Ошибка отправки в #${ch.name}:`, e);
+      if (guild) {
+        await sendPersonalReport(guild, userStats as UserStats, displayName);
+        alreadySent.add(dedupeKey);
+        sent++;
       }
     }
 
@@ -504,18 +741,25 @@ export async function handleCommand(message: Message): Promise<void> {
     const norm = getNorm();
     await message.reply(
       "**Команды бота:**\n" +
-      "`!норма` — статистика всех участников за неделю\n" +
-      "`!топ` — топ участников по активности (кнопки: неделя / всё время)\n" +
-      "`!история` — архив последних 5 недель\n" +
-      "`!статус [@user]` — статистика участника (кнопки: неделя / всё время)\n" +
-      "`!тестрапорт` — отправить рапорты прямо сейчас\n" +
-      "`!норма установить голос X` — изменить норму голоса (сейчас: **" + norm.voiceHours + "ч**)\n" +
-      "`!норма установить сообщений X` — изменить норму сообщений (сейчас: **" + norm.messages + "**)\n" +
-      "`!исключить @user` — исключить/включить участника из учёта\n" +
-      "`!часы @user (время)` — добавить участнику определенное кол-во времени в войсах\n" +
-      "`!сброс @user` — сбросить недельную статистику участника\n" +
-      "`!дебаг` — сырые данные\n" +
-      "`!помощь` — это сообщение"
+        "`!норма` — статистика всех участников за неделю\n" +
+        "`!топ` — топ участников по активности (кнопки: неделя / всё время)\n" +
+        "`!история` — архив последних 5 недель\n" +
+        "`!статус [@user]` — статистика участника (кнопки: неделя / всё время)\n" +
+        "`!тестрапорт` — отправить рапорты прямо сейчас\n" +
+      "`!рапорткуратор` — отправить рапорт всем кураторам прямо сейчас\n" +
+        "`!норма установить голос X` — изменить норму голоса (сейчас: **" + norm.voiceHours + "ч**)\n" +
+        "`!норма установить сообщений X` — изменить норму сообщений (сейчас: **" + norm.messages + "**)\n" +
+        "`!норма куратор установить обзвон X` — норма обзвонов для кураторов\n" +
+        "`!норма куратор установить тикет X` — норма тикетов для кураторов\n" +
+        "`!норма куратор установить проверка X` — норма проверок для кураторов\n" +
+        "`!норма куратор установить список X` — норма списков для кураторов\n" +
+        "`!куратор @user` — сделать участника куратором (или убрать статус)\n" +
+      "`!вышестоящие` — показывает норму всех кураторов\n" +
+        "`!исключить @user` — исключить/включить участника из учёта\n" +
+        "`!часы @user (время)` — добавить участнику определенное кол-во времени в войсах\n" +
+        "`!сброс @user` — сбросить недельную статистику участника\n" +
+        "`!дебаг` — сырые данные\n" +
+        "`!помощь` — это сообщение"
     );
   }
 }
