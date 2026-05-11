@@ -36,32 +36,38 @@ export function buildStatusEmbed(
   const voiceIcon = voiceSec >= norm.voiceHours * 3600 ? "✅" : "❌";
   const msgIcon = msgCount >= norm.messages ? "✅" : "❌";
   const passed = voiceSec >= norm.voiceHours * 3600 && msgCount >= norm.messages;
+  const streakText = user.streak > 0 ? `${user.streak}` : "0";
+  const bestText = user.bestStreak > 0 ? `${user.bestStreak}` : "отсутствуют";
+  const normLine = passed ? "## ✅ Недельная норма выполнена" : "## ❌ Недельная норма не выполнена";
 
-  const streakText = user.streak > 0
-    ? `🔥 ${user.streak} ${user.streak === 1 ? "неделя" : user.streak < 5 ? "недели" : "недель"} подряд`
-    : "🔥 0";
-  const bestText = user.bestStreak > 0 ? `Рекорд: ${user.bestStreak}` : "Рекорда нет";
+  const desc = isWeek ? [
+    "📆 За текущую неделю",
+    "================================",
+    `Войсы - ${voiceIcon}`,
+    `${formatTime(voiceSec)} / ${norm.voiceHours}ч`,
+    "================================",
+    `Сообщения - ${msgIcon}`,
+    `${msgCount} / ${norm.messages}`,
+    "|————————————————————|",
+    `Количество стриков - ${streakText} 🔥`,
+    `Рекорды - ${bestText}`,
+    normLine,
+  ].join("\n") : [
+    "🗓️ За всё время",
+    "================================",
+    `Войсы - ${voiceIcon}`,
+    `${formatTime(voiceSec)}`,
+    "================================",
+    `Сообщения - ${msgIcon}`,
+    `${msgCount}`,
+    "|————————————————————|",
+    `Количество стриков - ${streakText} 🔥`,
+    `Рекорды - ${bestText}`,
+  ].join("\n");
 
   const embed = new EmbedBuilder()
     .setTitle(`📊 Статистика — ${displayName}`)
-    .setDescription(isWeek ? "📅 За текущую неделю" : "🗓️ За всё время")
-    .addFields(
-      {
-        name: `${voiceIcon} Голос`,
-        value: `${formatTime(voiceSec)} / ${isWeek ? norm.voiceHours + "ч" : "∞"}`,
-        inline: true,
-      },
-      {
-        name: `${msgIcon} Сообщений`,
-        value: `${msgCount} / ${isWeek ? norm.messages : "∞"}`,
-        inline: true,
-      },
-      {
-        name: "🔥 Стрик",
-        value: `${streakText}\n${bestText}`,
-        inline: true,
-      }
-    )
+    .setDescription(desc)
     .setColor(isWeek ? (passed ? 0x57f287 : 0xed4245) : 0x5865f2)
     .setTimestamp();
 
@@ -299,7 +305,22 @@ export async function handleCommand(message: Message): Promise<void> {
     }
     return;
   }
-
+  
+  // ── !км ──
+  if (content === "!км") {
+    const users = getActiveUsers();
+    if (users.length === 0) {
+      await message.reply("Нет участников клана.");
+      return;
+    }
+    for (const u of users) {
+      const member = await message.guild?.members.fetch(u.userId).catch(() => null);
+      if (member) {
+        await message.channel.send(`<@${u.userId}>`);
+      }
+    }
+    return;
+  }
   // ── !часы ──
   const hoursMatch = content.match(/^!часы <@!?(\d+)> (\d+(?:[.,]\d+)?)(м|ч)?$/i);
   if (hoursMatch) {
@@ -316,6 +337,7 @@ export async function handleCommand(message: Message): Promise<void> {
     await message.reply(`✅ **${member.displayName}** добавлено **${amount}${unit === "ч" ? "ч" : "м"}** голосового времени.`);
     return;
   }
+  
   // ── !сброс ──
   if (content.startsWith("!сброс") || content.startsWith("!reset")) {
     const parts = content.split(" ");
@@ -435,15 +457,29 @@ export async function handleCommand(message: Message): Promise<void> {
       if (userStats.excluded) continue;
 
       const normPassed = userStats.voiceSeconds >= norm.voiceHours * 3600 && userStats.messages >= norm.messages;
-      const normStr = normPassed ? "# ✅ Недельная норма выполнена!" : "# ❌ Недельная норма не выполнена!";
+      const voiceIcon = userStats.voiceSeconds >= norm.voiceHours * 3600 ? "✅" : "❌";
+      const msgIcon = userStats.messages >= norm.messages ? "✅" : "❌";
+      const normStr = normPassed ? "### ✅ Недельная норма выполнена" : "### ❌ Недельная норма не выполнена";
       const h = Math.floor(userStats.voiceSeconds / 3600);
       const m2 = Math.floor((userStats.voiceSeconds % 3600) / 60);
 
+      const weekStart = new Date();
+      const dow = weekStart.getDay() === 0 ? 6 : weekStart.getDay() - 1;
+      weekStart.setDate(weekStart.getDate() - dow);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      const fmtD = (d: Date) => `${d.getDate().toString().padStart(2, "0")}.${(d.getMonth()+1).toString().padStart(2, "0")}`;
+
       const text = [
-        `**Clan member:** ${displayName}`,
-        `**Активность в войсах:** ${h}ч ${m2}м / ${norm.voiceHours}ч`,
-        `**Активность по сообщениям:** ${userStats.messages} / ${norm.messages}`,
-        ``,
+        `# **Участник: ${displayName}**`,
+        `## Отчет с ${fmtD(weekStart)}-${fmtD(weekEnd)}`,
+        `================================`,
+        `**> Активность в голосовых каналах - ${voiceIcon}`,
+        `> ${h}ч ${m2}м / ${norm.voiceHours}ч`,
+        `================================`,
+        `> Активность в текстовых каналах - ${msgIcon}`,
+        `> ${userStats.messages} / ${norm.messages}**`,
+        `================================`,
         normStr,
       ].join("\n");
 
@@ -476,6 +512,7 @@ export async function handleCommand(message: Message): Promise<void> {
       "`!норма установить голос X` — изменить норму голоса (сейчас: **" + norm.voiceHours + "ч**)\n" +
       "`!норма установить сообщений X` — изменить норму сообщений (сейчас: **" + norm.messages + "**)\n" +
       "`!исключить @user` — исключить/включить участника из учёта\n" +
+      "`!часы @user (время)` — добавить участнику определенное кол-во времени в войсах\n" +
       "`!сброс @user` — сбросить недельную статистику участника\n" +
       "`!дебаг` — сырые данные\n" +
       "`!помощь` — это сообщение"

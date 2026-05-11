@@ -40,20 +40,29 @@ export async function sendPersonalReport(guild: Guild, user: UserStats, displayN
     const norm = checkNorm(user);
     const normNorm = getNorm();
     const voiceStr = formatTime(user.voiceSeconds);
-    const normStr = norm.passed
-      ? "# ✅ Недельная норма выполнена!"
-      : "# ❌ Недельная норма не выполнена!";
 
-    const streakLine = user.streak > 0
-      ? `**🔥 Стрик:** ${user.streak} ${user.streak === 1 ? "неделя" : user.streak < 5 ? "недели" : "недель"} подряд${user.bestStreak > user.streak ? ` (рекорд: ${user.bestStreak})` : user.bestStreak === user.streak && user.streak > 1 ? " 🏆 новый рекорд!" : ""}`
-      : `**🔥 Стрик:** 0 (норма не выполнена)`;
+    const now = new Date();
+    const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - dayOfWeek);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    const fmt = (d: Date) => `${d.getDate().toString().padStart(2, "0")}.${(d.getMonth()+1).toString().padStart(2, "0")}`;
+
+    const voiceIcon = norm.voice ? "✅" : "❌";
+    const msgIcon = norm.messages ? "✅" : "❌";
+    const normStr = norm.passed ? "### ✅ Недельная норма выполнена" : "### ❌ Недельная норма не выполнена";
 
     const text = [
-      `**Clan member:** ${displayName}`,
-      `**Активность в войсах:** ${voiceStr} / ${normNorm.voiceHours}ч`,
-      `**Активность по сообщениям:** ${user.messages} / ${normNorm.messages}`,
-      streakLine,
-      ``,
+      `# **Участник: ${displayName}**`,
+      `## Отчет с ${fmt(monday)}-${fmt(sunday)}`,
+      `================================`,
+      `**> Активность в голосовых каналах - ${voiceIcon}`,
+      `> ${voiceStr} / ${normNorm.voiceHours}ч`,
+      `================================`,
+      `> Активность в текстовых каналах - ${msgIcon}`,
+      `> ${user.messages} / ${normNorm.messages}**`,
+      `================================`,
       normStr,
     ].join("\n");
 

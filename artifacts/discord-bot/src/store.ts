@@ -14,6 +14,13 @@ export interface UserStats {
   excluded: boolean;
   streak: number;
   bestStreak: number;
+  curatorStats: {
+    obzvon: number;
+    tiket: number;
+    proverka: number;
+    proverkaKm: number;
+    spisok: number;
+  };
 }
 
 interface DataFile {
@@ -55,7 +62,7 @@ export function loadStats(): void {
       u.totalVoiceSeconds = u.totalVoiceSeconds ?? u.voiceSeconds;
       u.excluded = u.excluded ?? false;
       u.streak = u.streak ?? 0;
-      u.bestStreak = u.bestStreak ?? 0;
+      u.bestStreak = u.bestStreak ?? 0;u.curatorStats = u.curatorStats ?? { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0 };
       stats.set(u.userId, u);
     }
     console.log(`[Store] Загружена статистика: ${stats.size} участников, lastSeenAt: ${lastSeenAt ? new Date(lastSeenAt).toISOString() : "нет"}`);
@@ -98,7 +105,7 @@ export function getUser(userId: string, username: string): UserStats {
       totalVoiceSeconds: 0,
       excluded: false,
       streak: 0,
-      bestStreak: 0,
+      bestStreak: 0, curatorStats: { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0 },
     });
   }
   return stats.get(userId)!;
@@ -129,7 +136,7 @@ export function resetAllStats(): void {
   for (const user of stats.values()) {
     user.messages = 0;
     user.voiceSeconds = 0;
-    user.voiceJoinedAt = null;
+    user.voiceJoinedAt = null; user.curatorStats = { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0 };
   }
   saveStats();
 }

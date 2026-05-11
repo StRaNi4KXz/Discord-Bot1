@@ -1,221 +1,442 @@
 {
-  "lastSeenAt": 1778368031832,
+  "lastSeenAt": 1778504551738,
   "users": [
     {
       "userId": "1405271296891289752",
       "username": "suretomato",
-      "messages": 93,
-      "voiceSeconds": 81.033,
+      "messages": 0,
+      "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 93,
-      "totalVoiceSeconds": 81.033,
+      "totalMessages": 224,
+      "totalVoiceSeconds": 79425.02100000001,
       "excluded": false,
-      "streak": 0,
-      "bestStreak": 0
+      "streak": 1,
+      "bestStreak": 1,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1378779357207855126",
       "username": "qwashka",
-      "messages": 30,
-      "voiceSeconds": 32.231,
+      "messages": 0,
+      "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 30,
-      "totalVoiceSeconds": 32.231,
-      "excluded": false,
+      "totalVoiceSeconds": 7232.231,
+      "excluded": true,
       "streak": 0,
-      "bestStreak": 0
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1203341268739166268",
       "username": "awedow_",
-      "messages": 153,
-      "voiceSeconds": 1522.4340000000002,
+      "messages": 0,
+      "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 153,
-      "totalVoiceSeconds": 1522.4340000000002,
-      "excluded": false,
+      "totalMessages": 162,
+      "totalVoiceSeconds": 8722.434000000001,
+      "excluded": true,
       "streak": 0,
-      "bestStreak": 0
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1409542909505830943",
       "username": "zxcobraxd",
-      "messages": 19,
-      "voiceSeconds": 339.582,
+      "messages": 7,
+      "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 19,
-      "totalVoiceSeconds": 339.582,
+      "totalMessages": 98,
+      "totalVoiceSeconds": 51427.254,
       "excluded": false,
-      "streak": 0,
-      "bestStreak": 0
+      "streak": 1,
+      "bestStreak": 1,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1055307960668147813",
       "username": "laks11680",
-      "messages": 26,
+      "messages": 3,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 26,
-      "totalVoiceSeconds": 0,
+      "totalMessages": 146,
+      "totalVoiceSeconds": 36595.954,
       "excluded": false,
-      "streak": 0,
-      "bestStreak": 0
+      "streak": 1,
+      "bestStreak": 1,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1240997456343208047",
       "username": "gaikayt.",
-      "messages": 55,
+      "messages": 4,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 55,
-      "totalVoiceSeconds": 0,
+      "totalMessages": 81,
+      "totalVoiceSeconds": 2400,
       "excluded": false,
       "streak": 0,
-      "bestStreak": 0
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1464468384555995178",
       "username": "speedbronzik_65084",
-      "messages": 90,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 90,
-      "totalVoiceSeconds": 0,
+      "totalMessages": 313,
+      "totalVoiceSeconds": 17640,
       "excluded": false,
-      "streak": 0,
-      "bestStreak": 0
+      "streak": 1,
+      "bestStreak": 1,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1472091449842729085",
       "username": "bil215777",
-      "messages": 35,
-      "voiceSeconds": 2410.8910000000005,
+      "messages": 0,
+      "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 35,
       "totalVoiceSeconds": 2410.8910000000005,
-      "excluded": false,
+      "excluded": true,
       "streak": 0,
-      "bestStreak": 0
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1466085546458615891",
       "username": "scantzoo3817",
       "messages": 0,
-      "voiceSeconds": 388.37100000000004,
+      "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 0,
-      "totalVoiceSeconds": 388.37100000000004,
+      "totalMessages": 2,
+      "totalVoiceSeconds": 2068.371,
       "excluded": false,
       "streak": 0,
-      "bestStreak": 0
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1250411846947835920",
       "username": "uteelp_54001",
-      "messages": 9,
-      "voiceSeconds": 831.865,
+      "messages": 4,
+      "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 9,
-      "totalVoiceSeconds": 831.865,
+      "totalMessages": 54,
+      "totalVoiceSeconds": 51171.865,
       "excluded": false,
-      "streak": 0,
-      "bestStreak": 0
+      "streak": 1,
+      "bestStreak": 1,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1297465830812160052",
       "username": "sh1isui_82894",
       "messages": 0,
-      "voiceSeconds": 676.566,
+      "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 0,
-      "totalVoiceSeconds": 676.566,
+      "totalMessages": 28,
+      "totalVoiceSeconds": 28497.917999999998,
       "excluded": false,
       "streak": 0,
-      "bestStreak": 0
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1494234908812513444",
       "username": "micaaska_96880",
-      "messages": 1,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 1,
       "totalVoiceSeconds": 0,
       "excluded": false,
       "streak": 0,
-      "bestStreak": 0
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1093749704115896411",
       "username": "roman_bmgo1",
-      "messages": 65,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 65,
-      "totalVoiceSeconds": 0,
+      "totalMessages": 118,
+      "totalVoiceSeconds": 1680,
       "excluded": false,
       "streak": 0,
-      "bestStreak": 0
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1239617934913966141",
       "username": "mazah1st_x_slab",
-      "messages": 17,
-      "voiceSeconds": 616.468,
+      "messages": 7,
+      "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 17,
-      "totalVoiceSeconds": 616.468,
+      "totalMessages": 33,
+      "totalVoiceSeconds": 33616.468,
       "excluded": false,
       "streak": 0,
-      "bestStreak": 0
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1415352022290661376",
       "username": "flystring_56033",
-      "messages": 31,
+      "messages": 11,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 31,
+      "totalMessages": 146,
       "totalVoiceSeconds": 0,
       "excluded": false,
       "streak": 0,
-      "bestStreak": 0
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1165003088516624494",
       "username": "nazartrx1",
-      "messages": 8,
-      "voiceSeconds": 893.192,
+      "messages": 4,
+      "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 8,
-      "totalVoiceSeconds": 893.192,
+      "totalMessages": 84,
+      "totalVoiceSeconds": 59093.191999999995,
       "excluded": false,
-      "streak": 0,
-      "bestStreak": 0
+      "streak": 1,
+      "bestStreak": 1,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1401634581844590843",
       "username": "bronzeboat57080",
-      "messages": 12,
-      "voiceSeconds": 2097.001,
+      "messages": 6,
+      "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 12,
-      "totalVoiceSeconds": 2097.001,
+      "totalMessages": 45,
+      "totalVoiceSeconds": 11286.487000000001,
       "excluded": false,
       "streak": 0,
-      "bestStreak": 0
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     },
     {
       "userId": "1283154550286585969",
       "username": "kudryashok._52356",
-      "messages": 2,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 2,
       "totalVoiceSeconds": 0,
+      "excluded": true,
+      "streak": 0,
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
+    },
+    {
+      "userId": "1195193919072391240",
+      "username": "smartcoder16426",
+      "messages": 4,
+      "voiceSeconds": 0,
+      "voiceJoinedAt": null,
+      "totalMessages": 106,
+      "totalVoiceSeconds": 6389.864,
       "excluded": false,
       "streak": 0,
-      "bestStreak": 0
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
+    },
+    {
+      "userId": "1111008246849876068",
+      "username": "nertoks",
+      "messages": 0,
+      "voiceSeconds": 0,
+      "voiceJoinedAt": null,
+      "totalMessages": 4,
+      "totalVoiceSeconds": 5700,
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
+    },
+    {
+      "userId": "1075117466025459794",
+      "username": "zablik8112",
+      "messages": 1,
+      "voiceSeconds": 0,
+      "voiceJoinedAt": null,
+      "totalMessages": 14,
+      "totalVoiceSeconds": 12893.293,
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
+    },
+    {
+      "userId": "1010633116068622367",
+      "username": "xagresiv4kx",
+      "messages": 2,
+      "voiceSeconds": 0,
+      "voiceJoinedAt": null,
+      "totalMessages": 81,
+      "totalVoiceSeconds": 9508.601999999999,
+      "excluded": false,
+      "streak": 1,
+      "bestStreak": 1,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
+    },
+    {
+      "userId": "1468590014106570808",
+      "username": "nesoft1231384nt",
+      "messages": 4,
+      "voiceSeconds": 0,
+      "voiceJoinedAt": null,
+      "totalMessages": 12,
+      "totalVoiceSeconds": 10080,
+      "excluded": false,
+      "streak": 0,
+      "bestStreak": 0,
+      "curatorStats": {
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
+        "proverkaKm": 0,
+        "spisok": 0
+      }
     }
   ]
 }

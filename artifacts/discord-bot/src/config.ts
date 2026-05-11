@@ -14,6 +14,6 @@ export const config = {
   },
 
   checkDay: 1,
-  checkHour: 15,
-  checkMinute: 0,
+  checkHour: 11,
+  checkMinute: 20,
 };
