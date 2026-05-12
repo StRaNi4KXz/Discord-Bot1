@@ -123,12 +123,13 @@ client.on(Events.MessageCreate, async (message: Message) => {
     else if (lower.startsWith("+тикет"))                                          stat = "tiket";
     else if (lower.startsWith("+список"))                                         stat = "spisok";
 
-  if (stat) {
-    incrementCuratorStat(userId, username, stat);
-    console.log(`[Curator] ${username} +1 ${stat} в #${channelName}`);
-    message.react("✅").catch(() => {});
+    if (stat) {
+      incrementCuratorStat(userId, username, stat);
+      console.log(`[Curator] ${username} +1 ${stat} в #${channelName}`);
+      message.react("✅").catch(() => {});
+    }
+    return;
   }
-  return;
 
   if (content.startsWith("!")) {
     await handleCommand(message);
@@ -160,6 +161,7 @@ cron.schedule(cronExpr, async () => {
 function shutdown() {
   console.log("[Bot] Завершение работы, сохраняю lastSeenAt...");
   updateLastSeenAt();
+  client.destroy();
   process.exit(0);
 }
 process.on("SIGTERM", shutdown);
