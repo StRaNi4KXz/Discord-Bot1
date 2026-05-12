@@ -1,5 +1,5 @@
 import { Client, TextChannel, ChannelType, Collection, Message, Snowflake } from "discord.js";
-import { incrementMessages } from "./store.js";
+import { incrementMessages, incrementCuratorStat, type CuratorStatKey } from "./store.js";
 import { isSpam } from "./antiFarm.js";
 
 const BATCH_SIZE = 100;
@@ -21,10 +21,13 @@ export async function catchUpMissedMessages(client: Client, since: number): Prom
     }
 
     for (const channel of guild.channels.cache.values()) {
-      if (channel.type !== ChannelType.GuildText) continue;
+      const chName = "name" in channel ? (channel as any).name as string : "";
+      const isReportChannel = chName.startsWith("рапорт-");
 
-      // Skip report channels (рапорт-*)
-      if (channel.name.startsWith("рапорт-")) continue;
+      // Для обычных каналов — только GuildText
+      // Для рапорт-каналов — любой тип у которого есть имя
+      if (!isReportChannel && channel.type !== ChannelType.GuildText) continue;
+      if (isReportChannel && !("messages" in channel)) continue;
 
       try {
         let lastId: Snowflake | undefined;
@@ -44,7 +47,6 @@ export async function catchUpMissedMessages(client: Client, since: number): Prom
 
           if (batch.size === 0) break;
 
-          // Sort oldest first to preserve duplicate-window ordering
           const sorted = [...batch.values()].sort((a, b) => a.createdTimestamp - b.createdTimestamp);
 
           let reachedCutoff = false;
@@ -55,15 +57,32 @@ export async function catchUpMissedMessages(client: Client, since: number): Prom
             }
             totalScanned++;
             if (msg.author.bot) continue;
-            if (!isSpam(msg.author.id, msg.content, msg.createdTimestamp)) {
-              incrementMessages(msg.author.id, msg.author.username);
-              totalCounted++;
+
+            if (isReportChannel) {
+              const lower = msg.content.trim().toLowerCase();
+              let stat: CuratorStatKey | null = null;
+
+              if (lower.startsWith("+обзвон"))                                              stat = "obzvon";
+              else if (lower.startsWith("+проверка км") || lower.startsWith("+проверкакм")) stat = "proverkaKm";
+              else if (lower.startsWith("+проверка"))                                       stat = "proverka";
+              else if (lower.startsWith("+тикет"))                                          stat = "tiket";
+              else if (lower.startsWith("+список"))                                         stat = "spisok";
+
+              if (stat) {
+                incrementCuratorStat(msg.author.id, msg.author.username, stat);
+                totalCounted++;
+                console.log(`[CatchUp][Curator] ${msg.author.username} +1 ${stat} в #${chName}`);
+              }
+            } else {
+              if (!isSpam(msg.author.id, msg.content, msg.createdTimestamp)) {
+                incrementMessages(msg.author.id, msg.author.username);
+                totalCounted++;
+              }
             }
           }
 
           fetched += batch.size;
 
-          // Oldest message in this batch
           const oldestTs = Math.min(...batch.map((m) => m.createdTimestamp));
           if (oldestTs <= since || reachedCutoff) {
             done = true;
@@ -72,7 +91,7 @@ export async function catchUpMissedMessages(client: Client, since: number): Prom
           }
         }
       } catch (err) {
-        console.warn(`[CatchUp] Ошибка при чтении #${channel.name}:`, err);
+        console.warn(`[CatchUp] Ошибка при чтении #${chName}:`, err);
       }
     }
   }

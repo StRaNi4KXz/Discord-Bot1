@@ -21,6 +21,7 @@ import {
 import { config } from "./config.js";
 import { getNorm, setVoiceHours, setMessages, setCuratorNorm } from "./dynamicConfig.js";
 import { sendPersonalReport } from "./report.js";
+import { rescanCuratorStats } from "./curatorRescan.js";
 import { getHistory } from "./history.js";
 
 let lastTestReportAt: number | null = null;
@@ -236,7 +237,34 @@ export async function handleCommand(message: Message): Promise<void> {
     await message.reply(`📊 **Текущая статистика:**\n${lines.join("\n")}`);
     return;
   }
-
+  
+  // ── !пересчёт ──
+  if (content === "!пересчёт") {
+    await message.reply("🔄 Запускаю пересчёт статистики кураторов...");
+    await rescanCuratorStats(message.client);
+    await message.reply("✅ Пересчёт завершён. Статистика кураторов обновлена.");
+    return;
+  }
+  
+  // ── !км ──
+  if (content === "!км") {
+    const users = getActiveUsers();
+    if (users.length === 0) {
+      await message.reply("Нет участников клана.");
+      return;
+    }
+    let kmCount = 0;
+    for (const u of users) {
+      const member = await message.guild?.members.fetch(u.userId).catch(() => null);
+      if (member) {
+        await message.channel.send(`<@${u.userId}>`);
+        kmCount++;
+      }
+    }
+    await message.channel.send(`Конец списка. ${kmCount} км в общем`);
+    return;
+  }
+  
   // ── !норма установить голос X ──
   const voiceMatch = content.match(/^!норма установить голос (\d+(?:[.,]\d+)?)$/i);
   if (voiceMatch) {
@@ -743,10 +771,12 @@ export async function handleCommand(message: Message): Promise<void> {
       "**Команды бота:**\n" +
         "`!норма` — статистика всех участников за неделю\n" +
         "`!топ` — топ участников по активности (кнопки: неделя / всё время)\n" +
+      "`!км` — показывает список всех участников клана\n" +
         "`!история` — архив последних 5 недель\n" +
         "`!статус [@user]` — статистика участника (кнопки: неделя / всё время)\n" +
         "`!тестрапорт` — отправить рапорты прямо сейчас\n" +
       "`!рапорткуратор` — отправить рапорт всем кураторам прямо сейчас\n" +
+      "`!пересчёт` — пересчитать статистику кураторов за текущую неделю из каналов рапорт-\n" +
         "`!норма установить голос X` — изменить норму голоса (сейчас: **" + norm.voiceHours + "ч**)\n" +
         "`!норма установить сообщений X` — изменить норму сообщений (сейчас: **" + norm.messages + "**)\n" +
         "`!норма куратор установить обзвон X` — норма обзвонов для кураторов\n" +
