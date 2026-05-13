@@ -36,8 +36,8 @@ export async function sendPersonalReport(
     await guild.channels.fetch();
 
     const reportChannel = guild.channels.cache.find((ch) => {
-      if (ch.type !== ChannelType.GuildText) return false;
-      const name = ch.name.toLowerCase();
+      const chName = "name" in ch ? (ch as any).name as string : "";
+      const name = chName.toLowerCase();
       return name === `рапорт-${username}` || name.startsWith(`рапорт-${username}`);
     }) as TextChannel | undefined;
 
@@ -54,7 +54,6 @@ export async function sendPersonalReport(
     const msgOk = user.messages >= normNorm.messages;
     const voiceStr = formatTime(user.voiceSeconds);
 
-    // ── Куратор — расширенный рапорт ──
     if (user.isCurator) {
       const cn = normNorm.curator;
       const cs = user.curatorStats;
@@ -63,7 +62,6 @@ export async function sendPersonalReport(
       const tiketOk    = cs.tiket    >= cn.tiket;
       const proverkaOk = cs.proverka >= cn.proverka;
       const spisokOk   = cs.spisok   >= cn.spisok;
-
       const allOk = voiceOk && msgOk && obzvonOk && tiketOk && proverkaOk && spisokOk;
 
       const text = [
@@ -96,7 +94,6 @@ export async function sendPersonalReport(
       return;
     }
 
-    // ── Обычный участник ──
     const voiceIcon = voiceOk ? "✅" : "❌";
     const msgIcon = msgOk ? "✅" : "❌";
     const normStr =
