@@ -33,23 +33,31 @@ export async function rescanCuratorStats(client: Client): Promise<void> {
       const member = guild.members.cache.get(curator.userId);
       if (!member) continue;
 
-      const discordUsername = member.user.username.toLowerCase();
+      const nick = member.nickname?.toLowerCase() ?? "";
+      const displayName = member.displayName.toLowerCase();
+      const username = member.user.username.toLowerCase();
 
       const reportChannel = guild.channels.cache.find((ch) => {
         const chName = "name" in ch ? (ch as any).name as string : "";
         const name = chName.toLowerCase();
+        if (!name.startsWith("рапорт-")) return false;
+        const suffix = name.replace("рапорт-", "");
         return (
-          name === `рапорт-${discordUsername}` ||
-          name.startsWith(`рапорт-${discordUsername}`)
+          suffix === username ||
+          suffix.startsWith(username) ||
+          suffix === displayName ||
+          suffix.startsWith(displayName) ||
+          (nick !== "" && (suffix === nick || suffix.startsWith(nick)))
         );
       });
 
       if (!reportChannel || !("messages" in reportChannel)) {
-        console.log(`[CuratorRescan] Канал рапорт-${discordUsername} не найден`);
+        console.log(`[CuratorRescan] Канал не найден (username: ${username}, ник: ${nick || "нет"}, display: ${displayName})`);
         continue;
       }
 
       let obzvon = 0, tiket = 0, proverka = 0, proverkaKm = 0, spisok = 0;
+      let scanSuccess = false;
 
       try {
         let lastId: string | undefined;
@@ -97,17 +105,21 @@ export async function rescanCuratorStats(client: Client): Promise<void> {
             lastId = batch.last()?.id;
           }
         }
+
+        scanSuccess = true;
       } catch (err) {
-        console.warn(`[CuratorRescan] Ошибка у ${member.displayName}:`, err);
+        console.warn(`[CuratorRescan] Ошибка при сканировании ${member.displayName}, статы не изменены:`, err);
       }
 
-      curator.curatorStats.obzvon     = obzvon;
-      curator.curatorStats.tiket      = tiket;
-      curator.curatorStats.proverka   = proverka;
-      curator.curatorStats.proverkaKm = proverkaKm;
-      curator.curatorStats.spisok     = spisok;
+      if (scanSuccess) {
+        curator.curatorStats.obzvon     = obzvon;
+        curator.curatorStats.tiket      = tiket;
+        curator.curatorStats.proverka   = proverka;
+        curator.curatorStats.proverkaKm = proverkaKm;
+        curator.curatorStats.spisok     = spisok;
 
-      console.log(`[CuratorRescan] ${member.displayName}: тикет=${tiket} обзвон=${obzvon} проверка=${proverka} список=${spisok}`);
+        console.log(`[CuratorRescan] ${member.displayName}: тикет=${tiket} обзвон=${obzvon} проверка=${proverka} список=${spisok}`);
+      }
     }
   }
 
