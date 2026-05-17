@@ -7,5 +7,9 @@
     "proverka": 4,
     "proverkaKm": 0,
     "spisok": 7
+  },
+  "moderator": {
+    "aktiv": 3,
+    "tiket": 3
   }
 }

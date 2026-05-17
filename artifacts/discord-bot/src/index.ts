@@ -18,7 +18,10 @@ import {
   getLastSeenAt,
   updateLastSeenAt,
   incrementCuratorStat,
+  incrementModeratorStat,
+  getUser,
   type CuratorStatKey,
+  type ModeratorStatKey,
 } from "./store.js";
 import { loadDynamicConfig } from "./dynamicConfig.js";
 import { loadHistory } from "./history.js";
@@ -109,26 +112,47 @@ client.on(Events.MessageCreate, async (message: Message) => {
   const username = message.author.username;
   const content = message.content;
 
-  // ── Рапорты кураторов ──
   const channelName = "name" in message.channel
     ? (message.channel as any).name as string
     : "";
 
   if (channelName.toLowerCase().startsWith("рапорт-")) {
     const lower = content.trim().toLowerCase();
-    let stat: CuratorStatKey | null = null;
+    const user = getUser(userId, username);
 
-    if (lower.startsWith("+обзвон"))                                              stat = "obzvon";
-    else if (lower.startsWith("+проверка км") || lower.startsWith("+проверкакм")) stat = "proverkaKm";
-    else if (lower.startsWith("+проверка"))                                       stat = "proverka";
-    else if (lower.startsWith("+тикет"))                                          stat = "tiket";
-    else if (lower.startsWith("+список"))                                         stat = "spisok";
+    // ── Рапорты кураторов ──
+    if (user.isCurator) {
+      let stat: CuratorStatKey | null = null;
 
-    if (stat) {
-      incrementCuratorStat(userId, username, stat);
-      console.log(`[Curator] ${username} +1 ${stat} в #${channelName}`);
-      message.react("✅").catch(() => {});
+      if (lower.startsWith("+обзвон"))                                              stat = "obzvon";
+      else if (lower.startsWith("+проверка км") || lower.startsWith("+проверкакм")) stat = "proverkaKm";
+      else if (lower.startsWith("+проверка"))                                       stat = "proverka";
+      else if (lower.startsWith("+тикет"))                                          stat = "tiket";
+      else if (lower.startsWith("+список"))                                         stat = "spisok";
+
+      if (stat) {
+        incrementCuratorStat(userId, username, stat);
+        console.log(`[Curator] ${username} +1 ${stat} в #${channelName}`);
+        message.react("✅").catch(() => {});
+      }
+      return;
     }
+
+    // ── Рапорты модераторов ──
+    if (user.isModerator) {
+      let stat: ModeratorStatKey | null = null;
+
+      if (lower.startsWith("+актив"))  stat = "aktiv";
+      else if (lower.startsWith("+тикет")) stat = "tiket";
+
+      if (stat) {
+        incrementModeratorStat(userId, username, stat);
+        console.log(`[Moderator] ${username} +1 ${stat} в #${channelName}`);
+        message.react("✅").catch(() => {});
+      }
+      return;
+    }
+
     return;
   }
 

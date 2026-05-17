@@ -10,16 +10,39 @@ function getWeekStart(): number {
   return monday.getTime();
 }
 
+function findReportChannel(guild: import("discord.js").Guild, member: import("discord.js").GuildMember) {
+  const nick = member.nickname?.toLowerCase() ?? "";
+  const displayName = member.displayName.toLowerCase();
+  const username = member.user.username.toLowerCase();
+
+  return guild.channels.cache.find((ch) => {
+    const chName = "name" in ch ? (ch as any).name as string : "";
+    const name = chName.toLowerCase();
+    if (!name.startsWith("рапорт-")) return false;
+    const suffix = name.replace("рапорт-", "");
+    return (
+      suffix === username ||
+      suffix.startsWith(username) ||
+      suffix === displayName ||
+      suffix.startsWith(displayName) ||
+      (nick !== "" && (suffix === nick || suffix.startsWith(nick)))
+    );
+  });
+}
+
 export async function rescanCuratorStats(client: Client): Promise<void> {
   const weekStart = getWeekStart();
-  const curators = getAllUsers().filter((u) => u.isCurator);
+  const allUsers = getAllUsers();
+  const curators = allUsers.filter((u) => u.isCurator);
+  const moderators = allUsers.filter((u) => u.isModerator);
 
-  if (curators.length === 0) {
-    console.log(`[CuratorRescan] Кураторов нет, пропускаю.`);
+  const total = curators.length + moderators.length;
+  if (total === 0) {
+    console.log(`[CuratorRescan] Нет кураторов и модераторов, пропускаю.`);
     return;
   }
 
-  console.log(`[CuratorRescan] Пересчёт для ${curators.length} кураторов с ${new Date(weekStart).toISOString()}...`);
+  console.log(`[CuratorRescan] Пересчёт: ${curators.length} кураторов, ${moderators.length} модераторов с ${new Date(weekStart).toISOString()}...`);
 
   for (const guild of client.guilds.cache.values()) {
     try {
@@ -29,30 +52,15 @@ export async function rescanCuratorStats(client: Client): Promise<void> {
       continue;
     }
 
+    // ── Кураторы ──
     for (const curator of curators) {
       const member = guild.members.cache.get(curator.userId);
       if (!member) continue;
 
-      const nick = member.nickname?.toLowerCase() ?? "";
-      const displayName = member.displayName.toLowerCase();
-      const username = member.user.username.toLowerCase();
-
-      const reportChannel = guild.channels.cache.find((ch) => {
-        const chName = "name" in ch ? (ch as any).name as string : "";
-        const name = chName.toLowerCase();
-        if (!name.startsWith("рапорт-")) return false;
-        const suffix = name.replace("рапорт-", "");
-        return (
-          suffix === username ||
-          suffix.startsWith(username) ||
-          suffix === displayName ||
-          suffix.startsWith(displayName) ||
-          (nick !== "" && (suffix === nick || suffix.startsWith(nick)))
-        );
-      });
+      const reportChannel = findReportChannel(guild, member);
 
       if (!reportChannel || !("messages" in reportChannel)) {
-        console.log(`[CuratorRescan] Канал не найден (username: ${username}, ник: ${nick || "нет"}, display: ${displayName})`);
+        console.log(`[CuratorRescan] Канал не найден для куратора ${member.displayName}`);
         continue;
       }
 
@@ -74,10 +82,7 @@ export async function rescanCuratorStats(client: Client): Promise<void> {
           let reachedCutoff = false;
 
           for (const msg of sorted) {
-            if (msg.createdTimestamp < weekStart) {
-              reachedCutoff = true;
-              continue;
-            }
+            if (msg.createdTimestamp < weekStart) { reachedCutoff = true; continue; }
             if (msg.author.id !== curator.userId) continue;
 
             const lower = msg.content.trim().toLowerCase();
@@ -92,23 +97,18 @@ export async function rescanCuratorStats(client: Client): Promise<void> {
             if (matched) {
               const already = msg.reactions.cache.get("✅");
               const botReacted = already?.users.cache.has(client.user!.id);
-              if (!botReacted) {
-                msg.react("✅").catch(() => {});
-              }
+              if (!botReacted) msg.react("✅").catch(() => {});
             }
           }
 
           const oldestTs = Math.min(...batch.map((m) => m.createdTimestamp));
-          if (oldestTs < weekStart || reachedCutoff) {
-            done = true;
-          } else {
-            lastId = batch.last()?.id;
-          }
+          if (oldestTs < weekStart || reachedCutoff) done = true;
+          else lastId = batch.last()?.id;
         }
 
         scanSuccess = true;
       } catch (err) {
-        console.warn(`[CuratorRescan] Ошибка при сканировании ${member.displayName}, статы не изменены:`, err);
+        console.warn(`[CuratorRescan] Ошибка куратора ${member.displayName}, статы не изменены:`, err);
       }
 
       if (scanSuccess) {
@@ -117,8 +117,70 @@ export async function rescanCuratorStats(client: Client): Promise<void> {
         curator.curatorStats.proverka   = proverka;
         curator.curatorStats.proverkaKm = proverkaKm;
         curator.curatorStats.spisok     = spisok;
+        console.log(`[CuratorRescan] Куратор ${member.displayName}: тикет=${tiket} обзвон=${obzvon} проверка=${proverka} список=${spisok}`);
+      }
+    }
 
-        console.log(`[CuratorRescan] ${member.displayName}: тикет=${tiket} обзвон=${obzvon} проверка=${proverka} список=${spisok}`);
+    // ── Модераторы ──
+    for (const moderator of moderators) {
+      const member = guild.members.cache.get(moderator.userId);
+      if (!member) continue;
+
+      const reportChannel = findReportChannel(guild, member);
+
+      if (!reportChannel || !("messages" in reportChannel)) {
+        console.log(`[CuratorRescan] Канал не найден для модератора ${member.displayName}`);
+        continue;
+      }
+
+      let aktiv = 0, tiket = 0;
+      let scanSuccess = false;
+
+      try {
+        let lastId: string | undefined;
+        let done = false;
+
+        while (!done) {
+          const options: { limit: number; before?: string } = { limit: 100 };
+          if (lastId) options.before = lastId;
+
+          const batch = await (reportChannel as TextChannel).messages.fetch(options).catch(() => null);
+          if (!batch || batch.size === 0) break;
+
+          const sorted = [...batch.values()].sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+          let reachedCutoff = false;
+
+          for (const msg of sorted) {
+            if (msg.createdTimestamp < weekStart) { reachedCutoff = true; continue; }
+            if (msg.author.id !== moderator.userId) continue;
+
+            const lower = msg.content.trim().toLowerCase();
+            let matched = false;
+
+            if (lower.startsWith("+актив"))       { aktiv++;  matched = true; }
+            else if (lower.startsWith("+тикет"))  { tiket++;  matched = true; }
+
+            if (matched) {
+              const already = msg.reactions.cache.get("✅");
+              const botReacted = already?.users.cache.has(client.user!.id);
+              if (!botReacted) msg.react("✅").catch(() => {});
+            }
+          }
+
+          const oldestTs = Math.min(...batch.map((m) => m.createdTimestamp));
+          if (oldestTs < weekStart || reachedCutoff) done = true;
+          else lastId = batch.last()?.id;
+        }
+
+        scanSuccess = true;
+      } catch (err) {
+        console.warn(`[CuratorRescan] Ошибка модератора ${member.displayName}, статы не изменены:`, err);
+      }
+
+      if (scanSuccess) {
+        moderator.moderatorStats.aktiv = aktiv;
+        moderator.moderatorStats.tiket = tiket;
+        console.log(`[CuratorRescan] Модератор ${member.displayName}: актив=${aktiv} тикет=${tiket}`);
       }
     }
   }

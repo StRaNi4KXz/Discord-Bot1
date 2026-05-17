@@ -13,12 +13,17 @@ interface DynamicNorm {
     proverkaKm: number;
     spisok: number;
   };
+  moderator: {
+    aktiv: number;
+    tiket: number;
+  };
 }
 
 let norm: DynamicNorm = {
   voiceHours: 2,
   messages: 40,
   curator: { obzvon: 5, tiket: 5, proverka: 5, proverkaKm: 0, spisok: 5 },
+  moderator: { aktiv: 5, tiket: 5 },
 };
 
 function ensureDir(): void {
@@ -36,6 +41,7 @@ export function loadDynamicConfig(): void {
       ...norm,
       ...parsed,
       curator: { ...norm.curator, ...(parsed.curator ?? {}) },
+      moderator: { ...norm.moderator, ...(parsed.moderator ?? {}) },
     };
     console.log(`[DynConfig] Норма: ${norm.voiceHours}ч голос, ${norm.messages} сообщений`);
   } catch (e) {
@@ -68,4 +74,10 @@ export function setCuratorNorm(key: keyof DynamicNorm["curator"], value: number)
   norm.curator[key] = value;
   save();
   console.log(`[DynConfig] Норма куратора ${key} изменена: ${value}`);
+}
+
+export function setModeratorNorm(key: keyof DynamicNorm["moderator"], value: number): void {
+  norm.moderator[key] = value;
+  save();
+  console.log(`[DynConfig] Норма модератора ${key} изменена: ${value}`);
 }
