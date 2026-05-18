@@ -1,5 +1,12 @@
 import { Client, TextChannel, ChannelType, Collection, Message, Snowflake } from "discord.js";
-import { incrementMessages, incrementCuratorStat, type CuratorStatKey } from "./store.js";
+import {
+  incrementMessages,
+  incrementCuratorStat,
+  incrementModeratorStat,
+  getUser,
+  type CuratorStatKey,
+  type ModeratorStatKey,
+} from "./store.js";
 import { isSpam } from "./antiFarm.js";
 
 const BATCH_SIZE = 100;
@@ -15,6 +22,7 @@ export async function catchUpMissedMessages(client: Client, since: number): Prom
   for (const guild of client.guilds.cache.values()) {
     try {
       await guild.channels.fetch();
+      await guild.members.fetch();
     } catch {
       console.warn(`[CatchUp] Не удалось получить каналы гильдии ${guild.name}`);
       continue;
@@ -22,10 +30,8 @@ export async function catchUpMissedMessages(client: Client, since: number): Prom
 
     for (const channel of guild.channels.cache.values()) {
       const chName = "name" in channel ? (channel as any).name as string : "";
-      const isReportChannel = chName.startsWith("рапорт-");
+      const isReportChannel = chName.toLowerCase().startsWith("рапорт-");
 
-      // Для обычных каналов — только GuildText
-      // Для рапорт-каналов — любой тип у которого есть имя
       if (!isReportChannel && channel.type !== ChannelType.GuildText) continue;
       if (isReportChannel && !("messages" in channel)) continue;
 
@@ -60,19 +66,38 @@ export async function catchUpMissedMessages(client: Client, since: number): Prom
 
             if (isReportChannel) {
               const lower = msg.content.trim().toLowerCase();
-              let stat: CuratorStatKey | null = null;
+              const user = getUser(msg.author.id, msg.author.username);
 
-              if (lower.startsWith("+обзвон"))                                              stat = "obzvon";
-              else if (lower.startsWith("+проверка км") || lower.startsWith("+проверкакм")) stat = "proverkaKm";
-              else if (lower.startsWith("+проверка"))                                       stat = "proverka";
-              else if (lower.startsWith("+тикет"))                                          stat = "tiket";
-              else if (lower.startsWith("+список"))                                         stat = "spisok";
+              // ── Рапорты кураторов ──
+              if (user.isCurator) {
+                let stat: CuratorStatKey | null = null;
 
-              if (stat) {
-                incrementCuratorStat(msg.author.id, msg.author.username, stat);
-                totalCounted++;
-                console.log(`[CatchUp][Curator] ${msg.author.username} +1 ${stat} в #${chName}`);
+                if (lower.startsWith("+обзвон"))                                              stat = "obzvon";
+                else if (lower.startsWith("+проверка км") || lower.startsWith("+проверкакм")) stat = "proverkaKm";
+                else if (lower.startsWith("+проверка"))                                       stat = "proverka";
+                else if (lower.startsWith("+тикет"))                                          stat = "tiket";
+                else if (lower.startsWith("+список"))                                         stat = "spisok";
+
+                if (stat) {
+                  incrementCuratorStat(msg.author.id, msg.author.username, stat);
+                  totalCounted++;
+                  console.log(`[CatchUp][Curator] ${msg.author.username} +1 ${stat} в #${chName}`);
+                }
+
+              // ── Рапорты модераторов ──
+              } else if (user.isModerator) {
+                let stat: ModeratorStatKey | null = null;
+
+                if (lower.startsWith("+актив"))           stat = "aktiv";
+                else if (lower.startsWith("+тикет"))      stat = "tiket";
+
+                if (stat) {
+                  incrementModeratorStat(msg.author.id, msg.author.username, stat);
+                  totalCounted++;
+                  console.log(`[CatchUp][Moderator] ${msg.author.username} +1 ${stat} в #${chName}`);
+                }
               }
+
             } else {
               if (!isSpam(msg.author.id, msg.content, msg.createdTimestamp)) {
                 incrementMessages(msg.author.id, msg.author.username);

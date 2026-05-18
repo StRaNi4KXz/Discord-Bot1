@@ -11,22 +11,26 @@ function getWeekStart(): number {
 }
 
 function findReportChannel(guild: import("discord.js").Guild, member: import("discord.js").GuildMember) {
-  const nick = member.nickname?.toLowerCase() ?? "";
-  const displayName = member.displayName.toLowerCase();
-  const username = member.user.username.toLowerCase();
+  const username = member.user.username.toLowerCase().trim();
+
+  // Берём только часть ДО "|" — это никнейм, после "|" — тег роли (не нужен)
+  const displayName = member.displayName.toLowerCase().trim();
+  const nameBeforePipe = displayName.split("|")[0].trim();
+
+  // Серверный ник тоже только до "|"
+  const rawNick = member.nickname?.toLowerCase().trim() ?? "";
+  const nickBeforePipe = rawNick.split("|")[0].trim();
 
   return guild.channels.cache.find((ch) => {
     const chName = "name" in ch ? (ch as any).name as string : "";
     const name = chName.toLowerCase();
     if (!name.startsWith("рапорт-")) return false;
-    const suffix = name.replace("рапорт-", "");
-    return (
-      suffix === username ||
-      suffix.startsWith(username) ||
-      suffix === displayName ||
-      suffix.startsWith(displayName) ||
-      (nick !== "" && (suffix === nick || suffix.startsWith(nick)))
-    );
+    const suffix = name.replace("рапорт-", "").trim();
+
+    if (matchesSuffix(suffix, username)) return true;
+    if (nickBeforePipe && matchesSuffix(suffix, nickBeforePipe)) return true;
+    if (nameBeforePipe && matchesSuffix(suffix, nameBeforePipe)) return true;
+    return false;
   });
 }
 
