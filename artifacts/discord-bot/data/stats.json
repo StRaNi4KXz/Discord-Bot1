@@ -1,5 +1,5 @@
 {
-  "lastSeenAt": 1779477518267,
+  "lastSeenAt": 1779478062018,
   "weekResetAt": null,
   "users": [
     {
@@ -85,7 +85,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 494,
       "totalVoiceSeconds": 107227.254,
-      "excluded": false,
+      "excluded": true,
       "streak": 0,
       "bestStreak": 2,
       "curatorStats": {
@@ -110,7 +110,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 275,
       "totalVoiceSeconds": 61375.954,
-      "excluded": false,
+      "excluded": true,
       "streak": 0,
       "bestStreak": 2,
       "curatorStats": {
@@ -135,7 +135,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 115,
       "totalVoiceSeconds": 2400,
-      "excluded": false,
+      "excluded": true,
       "streak": 0,
       "bestStreak": 0,
       "curatorStats": {
@@ -160,7 +160,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 372,
       "totalVoiceSeconds": 17640,
-      "excluded": false,
+      "excluded": true,
       "streak": 0,
       "bestStreak": 1,
       "curatorStats": {
@@ -210,7 +210,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 2,
       "totalVoiceSeconds": 2068.371,
-      "excluded": false,
+      "excluded": true,
       "streak": 0,
       "bestStreak": 0,
       "curatorStats": {
@@ -310,7 +310,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 118,
       "totalVoiceSeconds": 1680,
-      "excluded": false,
+      "excluded": true,
       "streak": 0,
       "bestStreak": 0,
       "curatorStats": {
@@ -335,7 +335,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 99,
       "totalVoiceSeconds": 33616.468,
-      "excluded": false,
+      "excluded": true,
       "streak": 0,
       "bestStreak": 0,
       "curatorStats": {
@@ -360,7 +360,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 303,
       "totalVoiceSeconds": 0,
-      "excluded": false,
+      "excluded": true,
       "streak": 0,
       "bestStreak": 0,
       "curatorStats": {
@@ -460,7 +460,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 497,
       "totalVoiceSeconds": 58085.971,
-      "excluded": false,
+      "excluded": true,
       "streak": 0,
       "bestStreak": 1,
       "curatorStats": {
@@ -485,7 +485,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 8,
       "totalVoiceSeconds": 19620,
-      "excluded": false,
+      "excluded": true,
       "streak": 0,
       "bestStreak": 0,
       "curatorStats": {
@@ -510,7 +510,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 93,
       "totalVoiceSeconds": 12948.038,
-      "excluded": false,
+      "excluded": true,
       "streak": 0,
       "bestStreak": 0,
       "curatorStats": {
@@ -535,7 +535,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 219,
       "totalVoiceSeconds": 31701.911,
-      "excluded": false,
+      "excluded": true,
       "streak": 0,
       "bestStreak": 2,
       "curatorStats": {
@@ -660,7 +660,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 178,
       "totalVoiceSeconds": 54540,
-      "excluded": false,
+      "excluded": true,
       "isCurator": false,
       "streak": 0,
       "bestStreak": 1,
@@ -685,7 +685,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 50,
       "totalVoiceSeconds": 0,
-      "excluded": false,
+      "excluded": true,
       "isCurator": false,
       "streak": 0,
       "bestStreak": 0,
@@ -735,7 +735,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 43,
       "totalVoiceSeconds": 4920,
-      "excluded": false,
+      "excluded": true,
       "isCurator": false,
       "streak": 0,
       "bestStreak": 0,
@@ -760,7 +760,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 2,
       "totalVoiceSeconds": 0,
-      "excluded": false,
+      "excluded": true,
       "isCurator": false,
       "streak": 0,
       "bestStreak": 0,
@@ -860,7 +860,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 0,
       "totalVoiceSeconds": 0,
-      "excluded": false,
+      "excluded": true,
       "isCurator": false,
       "isModerator": false,
       "streak": 0,
@@ -935,7 +935,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 50,
       "totalVoiceSeconds": 0,
-      "excluded": false,
+      "excluded": true,
       "isCurator": false,
       "isModerator": false,
       "streak": 0,
@@ -1010,7 +1010,7 @@
       "voiceJoinedAt": null,
       "totalMessages": 6,
       "totalVoiceSeconds": 0,
-      "excluded": false,
+      "excluded": true,
       "isCurator": false,
       "isModerator": false,
       "streak": 0,

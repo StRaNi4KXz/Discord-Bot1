@@ -265,16 +265,24 @@ export async function handleCommand(message: Message): Promise<void> {
       return;
     }
 
-    const lines = await Promise.all(
+    const resolved = await Promise.all(
       users.map(async (u) => {
         const member = await message.guild?.members.fetch(u.userId).catch(() => null);
-        const displayName = member?.displayName ?? u.username;
+        if (message.guild && !member) {
+          excludeUser(u.userId, u.username);
+          return null;
+        }
+        return { u, displayName: member?.displayName ?? u.username };
+      })
+    );
+    const lines = resolved
+      .filter((r): r is { u: typeof users[0]; displayName: string } => r !== null)
+      .map(({ u, displayName }) => {
         const voiceDone = u.voiceSeconds >= norm.voiceHours * 3600;
         const msgDone = u.messages >= norm.messages;
         const icon = voiceDone && msgDone ? "✅" : "❌";
         return `${icon} **${displayName}** — голос: ${formatTime(u.voiceSeconds)}/${norm.voiceHours}ч, сообщений: ${u.messages}/${norm.messages}`;
-      })
-    );
+      });
 
     const embed = new EmbedBuilder()
       .setTitle("📊 Текущая статистика")

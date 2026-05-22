@@ -1,5 +1,5 @@
 import { EmbedBuilder, TextChannel, Client, Guild, ChannelType } from "discord.js";
-import { getActiveUsers, resetAllStats, updateUserStreak, UserStats } from "./store.js";
+import { getActiveUsers, resetAllStats, updateUserStreak, excludeUser, UserStats } from "./store.js";
 import { config } from "./config.js";
 import { getNorm } from "./dynamicConfig.js";
 import { saveWeekSnapshot } from "./history.js";
@@ -207,6 +207,13 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
     const member = guild
       ? await guild.members.fetch(user.userId).catch(() => null)
       : null;
+
+    if (guild && !member) {
+      console.log(`[Report] ${user.username} не найден на сервере — авто-исключён.`);
+      excludeUser(user.userId, user.username);
+      continue;
+    }
+
     const displayName = member?.displayName ?? user.username;
 
     const voiceOk = user.voiceSeconds >= norm.voiceHours * 3600;

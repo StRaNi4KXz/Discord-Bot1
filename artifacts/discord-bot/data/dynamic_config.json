@@ -11,5 +11,8 @@
   "moderator": {
     "aktiv": 3,
     "tiket": 3
-  }
+  },
+  "ignoredCategoryIds": [
+    "1503035439827779746"
+  ]
 }

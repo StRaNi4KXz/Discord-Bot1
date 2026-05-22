@@ -22,6 +22,7 @@ import {
   incrementCuratorStat,
   incrementModeratorStat,
   getUser,
+  getActiveUsers,
   excludeUser,
   type CuratorStatKey,
   type ModeratorStatKey,
@@ -65,6 +66,25 @@ client.once(Events.ClientReady, async (c) => {
   } else {
     console.log("[CatchUp] Первый запуск, история не восстанавливается");
   }
+
+  // Авто-исключаем участников, которых больше нет на сервере
+  const guild = client.guilds.cache.first();
+  if (guild) {
+    const allActive = getActiveUsers();
+    console.log(`[Prune] Проверяю ${allActive.length} активных участников...`);
+    let pruned = 0;
+    for (const user of allActive) {
+      const member = guild.members.cache.get(user.userId)
+        ?? await guild.members.fetch(user.userId).catch(() => null);
+      if (!member) {
+        excludeUser(user.userId, user.username);
+        pruned++;
+        console.log(`[Prune] ${user.username} (${user.userId}) не найден — авто-исключён.`);
+      }
+    }
+    console.log(`[Prune] Готово: исключено ${pruned} участников.`);
+  }
+
   await rescanCuratorStats(client);
   updateLastSeenAt();
 
