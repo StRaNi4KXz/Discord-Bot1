@@ -8,6 +8,7 @@ import {
   type ModeratorStatKey,
 } from "./store.js";
 import { isSpam } from "./antiFarm.js";
+import { isCategoryIgnored } from "./dynamicConfig.js";
 
 const BATCH_SIZE = 100;
 const MAX_MESSAGES_PER_CHANNEL = 2000;
@@ -33,6 +34,7 @@ export async function catchUpMissedMessages(client: Client, since: number): Prom
 
       if (!isReportChannel && channel.type !== ChannelType.GuildText) continue;
       if (isReportChannel && !("messages" in channel)) continue;
+      if (!isReportChannel && isCategoryIgnored((channel as any).parentId)) continue;
 
       try {
         let lastId: Snowflake | undefined;

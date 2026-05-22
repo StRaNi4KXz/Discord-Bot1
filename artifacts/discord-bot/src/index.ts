@@ -26,7 +26,7 @@ import {
   type CuratorStatKey,
   type ModeratorStatKey,
 } from "./store.js";
-import { loadDynamicConfig } from "./dynamicConfig.js";
+import { loadDynamicConfig, isCategoryIgnored } from "./dynamicConfig.js";
 import { loadHistory } from "./history.js";
 import { isSpam } from "./antiFarm.js";
 import { sendWeeklyReport } from "./report.js";
@@ -172,6 +172,9 @@ client.on(Events.MessageCreate, async (message: Message) => {
     await handleCommand(message);
     return;
   }
+
+  const categoryId = "parentId" in message.channel ? (message.channel as any).parentId as string | null : null;
+  if (isCategoryIgnored(categoryId)) return;
 
   if (!isSpam(userId, content)) {
     incrementMessages(userId, username);

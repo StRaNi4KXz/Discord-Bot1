@@ -17,6 +17,7 @@ interface DynamicNorm {
     aktiv: number;
     tiket: number;
   };
+  ignoredCategoryIds: string[];
 }
 
 let norm: DynamicNorm = {
@@ -24,6 +25,7 @@ let norm: DynamicNorm = {
   messages: 40,
   curator: { obzvon: 5, tiket: 5, proverka: 5, proverkaKm: 0, spisok: 5 },
   moderator: { aktiv: 5, tiket: 5 },
+  ignoredCategoryIds: [],
 };
 
 function ensureDir(): void {
@@ -42,6 +44,7 @@ export function loadDynamicConfig(): void {
       ...parsed,
       curator: { ...norm.curator, ...(parsed.curator ?? {}) },
       moderator: { ...norm.moderator, ...(parsed.moderator ?? {}) },
+      ignoredCategoryIds: parsed.ignoredCategoryIds ?? norm.ignoredCategoryIds,
     };
     console.log(`[DynConfig] Норма: ${norm.voiceHours}ч голос, ${norm.messages} сообщений`);
   } catch (e) {
@@ -80,4 +83,26 @@ export function setModeratorNorm(key: keyof DynamicNorm["moderator"], value: num
   norm.moderator[key] = value;
   save();
   console.log(`[DynConfig] Норма модератора ${key} изменена: ${value}`);
+}
+
+export function addIgnoredCategory(categoryId: string): boolean {
+  if (norm.ignoredCategoryIds.includes(categoryId)) return false;
+  norm.ignoredCategoryIds.push(categoryId);
+  save();
+  console.log(`[DynConfig] Категория ${categoryId} добавлена в игнор`);
+  return true;
+}
+
+export function removeIgnoredCategory(categoryId: string): boolean {
+  const idx = norm.ignoredCategoryIds.indexOf(categoryId);
+  if (idx === -1) return false;
+  norm.ignoredCategoryIds.splice(idx, 1);
+  save();
+  console.log(`[DynConfig] Категория ${categoryId} убрана из игнора`);
+  return true;
+}
+
+export function isCategoryIgnored(categoryId: string | null | undefined): boolean {
+  if (!categoryId) return false;
+  return norm.ignoredCategoryIds.includes(categoryId);
 }

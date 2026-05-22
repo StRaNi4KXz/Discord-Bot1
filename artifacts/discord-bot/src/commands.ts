@@ -19,7 +19,7 @@ import {
   type UserStats,
 } from "./store.js";
 import { config } from "./config.js";
-import { getNorm, setVoiceHours, setMessages, setCuratorNorm, setModeratorNorm } from "./dynamicConfig.js";
+import { getNorm, setVoiceHours, setMessages, setCuratorNorm, setModeratorNorm, addIgnoredCategory, removeIgnoredCategory } from "./dynamicConfig.js";
 import { sendPersonalReport } from "./report.js";
 import { rescanCuratorStats } from "./curatorRescan.js";
 import { getHistory } from "./history.js";
@@ -755,6 +755,118 @@ export async function handleCommand(message: Message): Promise<void> {
     }
 
     await message.reply(`✅ Готово! Рапорты отправлены: ${sent} модератор(ам).`);
+    return;
+  }
+
+  // ── !категория ──
+  if (content.startsWith("!категория")) {
+    const parts = content.split(" ");
+    const sub = parts[1]?.toLowerCase();
+
+    // !категория список
+    if (!sub || sub === "список") {
+      const norm = getNorm();
+      if (norm.ignoredCategoryIds.length === 0) {
+        await message.reply("Игнорируемых категорий нет. Добавить: `!категория игнор #канал-из-категории`");
+        return;
+      }
+      const lines = norm.ignoredCategoryIds.map((id) => {
+        const cat = message.guild?.channels.cache.get(id);
+        return cat ? `• **${(cat as any).name}** (\`${id}\`)` : `• \`${id}\` *(категория не найдена)*`;
+      });
+      await message.reply(`🚫 **Игнорируемые категории:**\n${lines.join("\n")}`);
+      return;
+    }
+
+    // !категория игнор #канал или ID
+    if (sub === "игнор" || sub === "добавить") {
+      const arg = parts[2];
+      if (!arg) {
+        await message.reply("Укажите канал из нужной категории или ID категории: `!категория игнор #канал`");
+        return;
+      }
+
+      const channelId = arg.replace(/[<#>]/g, "");
+      const ch = message.guild?.channels.cache.get(channelId);
+
+      let categoryId: string | null = null;
+      let categoryName: string | null = null;
+
+      if (ch && (ch as any).parentId) {
+        // передан канал — берём его категорию
+        categoryId = (ch as any).parentId;
+        const cat = message.guild?.channels.cache.get(categoryId!);
+        categoryName = (cat as any)?.name ?? categoryId;
+      } else if (ch && ch.type === 4) {
+        // передан ID самой категории
+        categoryId = ch.id;
+        categoryName = (ch as any).name;
+      } else if (/^\d+$/.test(arg)) {
+        // голый ID
+        categoryId = arg;
+        categoryName = arg;
+      }
+
+      if (!categoryId) {
+        await message.reply("❌ Не удалось определить категорию. Укажите канал из нужной категории или её ID.");
+        return;
+      }
+
+      const added = addIgnoredCategory(categoryId);
+      if (added) {
+        await message.reply(`🚫 Категория **${categoryName}** добавлена в игнор — сообщения из неё не будут считаться.`);
+      } else {
+        await message.reply(`ℹ️ Категория **${categoryName}** уже в игноре.`);
+      }
+      return;
+    }
+
+    // !категория вернуть #канал или ID
+    if (sub === "вернуть" || sub === "убрать") {
+      const arg = parts[2];
+      if (!arg) {
+        await message.reply("Укажите канал или ID категории: `!категория вернуть #канал`");
+        return;
+      }
+
+      const channelId = arg.replace(/[<#>]/g, "");
+      const ch = message.guild?.channels.cache.get(channelId);
+
+      let categoryId: string | null = null;
+      let categoryName: string | null = null;
+
+      if (ch && (ch as any).parentId) {
+        categoryId = (ch as any).parentId;
+        const cat = message.guild?.channels.cache.get(categoryId!);
+        categoryName = (cat as any)?.name ?? categoryId;
+      } else if (ch && ch.type === 4) {
+        categoryId = ch.id;
+        categoryName = (ch as any).name;
+      } else if (/^\d+$/.test(arg)) {
+        categoryId = arg;
+        categoryName = arg;
+      }
+
+      if (!categoryId) {
+        await message.reply("❌ Не удалось определить категорию.");
+        return;
+      }
+
+      const removed = removeIgnoredCategory(categoryId);
+      if (removed) {
+        await message.reply(`✅ Категория **${categoryName}** убрана из игнора — сообщения снова считаются.`);
+      } else {
+        await message.reply(`ℹ️ Категория **${categoryName}** не была в игноре.`);
+      }
+      return;
+    }
+
+    await message.reply(
+      "**Команды категорий:**\n" +
+      "`!категория список` — показать игнорируемые категории\n" +
+      "`!категория игнор #канал` — добавить категорию в игнор\n" +
+      "`!категория вернуть #канал` — убрать категорию из игнора"
+    );
     return;
   }
 
