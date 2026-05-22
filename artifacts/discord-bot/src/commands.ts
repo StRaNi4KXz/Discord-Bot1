@@ -761,24 +761,53 @@ export async function handleCommand(message: Message): Promise<void> {
   // ── !исключить ──
   if (content.startsWith("!исключить") || content.startsWith("!exclude")) {
     const parts = content.split(" ");
-    const mention = parts[1];
-    if (!mention || !mention.startsWith("<@")) {
-      await message.reply("Укажите участника: `!исключить @username`");
+    const target = parts.slice(1).join(" ").trim();
+
+    if (!target) {
+      await message.reply("Укажите участника: `!исключить @упоминание` или `!исключить username`");
       return;
     }
-    const userId = mention.replace(/[<@!>]/g, "");
-    const member = await message.guild?.members.fetch(userId).catch(() => null);
-    if (!member) {
-      await message.reply("Участник не найден.");
-      return;
-    }
-    const user = getUser(userId, member.user.username);
-    if (user.excluded) {
-      includeUser(userId, member.user.username);
-      await message.reply(`✅ **${member.displayName}** снова включён в учёт активности.`);
+
+    let userId: string;
+    let displayName: string;
+    let username: string;
+
+    if (target.startsWith("<@")) {
+      // @упоминание
+      const id = target.replace(/[<@!>]/g, "");
+      const member = await message.guild?.members.fetch(id).catch(() => null);
+      if (!member) {
+        await message.reply("Участник не найден.");
+        return;
+      }
+      userId = id;
+      username = member.user.username;
+      displayName = member.displayName;
     } else {
-      excludeUser(userId, member.user.username);
-      await message.reply(`🚫 **${member.displayName}** исключён из учёта активности и отчётов.`);
+      // поиск по username в stats
+      const needle = target.toLowerCase();
+      const allUsers = getAllUsers();
+      const found = allUsers.find(
+        (u) => u.username.toLowerCase() === needle || u.username.toLowerCase().startsWith(needle)
+      );
+      if (!found) {
+        await message.reply(`❌ Участник \`${target}\` не найден в статистике. Проверь имя или используй @упоминание.`);
+        return;
+      }
+      userId = found.userId;
+      username = found.username;
+      // попробуем получить displayName из кэша сервера
+      const member = message.guild?.members.cache.get(userId);
+      displayName = member?.displayName ?? found.username;
+    }
+
+    const user = getUser(userId, username);
+    if (user.excluded) {
+      includeUser(userId, username);
+      await message.reply(`✅ **${displayName}** снова включён в учёт активности.`);
+    } else {
+      excludeUser(userId, username);
+      await message.reply(`🚫 **${displayName}** исключён из учёта активности и отчётов.`);
     }
     return;
   }
