@@ -1,5 +1,5 @@
 {
-  "lastSeenAt": 1779476613157,
+  "lastSeenAt": 1779476947514,
   "weekResetAt": null,
   "users": [
     {
@@ -395,8 +395,8 @@
         "proverkaKm": 0,
         "spisok": 0
       },
-      "isCurator": false,
-      "isModerator": true,
+      "isCurator": true,
+      "isModerator": false,
       "moderatorStats": {
         "aktiv": 0,
         "tiket": 0
