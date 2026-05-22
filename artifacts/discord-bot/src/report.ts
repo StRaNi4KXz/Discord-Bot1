@@ -3,6 +3,7 @@ import { getActiveUsers, resetAllStats, updateUserStreak, UserStats } from "./st
 import { config } from "./config.js";
 import { getNorm } from "./dynamicConfig.js";
 import { saveWeekSnapshot } from "./history.js";
+import { rescanCuratorStats } from "./curatorRescan.js";
 
 function formatTime(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -30,15 +31,31 @@ export async function sendPersonalReport(
   displayName: string
 ): Promise<void> {
   try {
-    const discordUser = await guild.client.users.fetch(user.userId);
-    const username = discordUser.username.toLowerCase();
+    const member = await guild.members.fetch(user.userId).catch(() => null);
+    if (!member) {
+      console.warn(`[Report] Участник ${displayName} не найден на сервере`);
+      return;
+    }
 
     await guild.channels.fetch();
+
+    // Ищем канал только по нику ДО "|" — часть после "|" это тег роли
+    const nameBeforePipe = member.displayName.toLowerCase().trim().split("|")[0].trim();
+    const nickBeforePipe = (member.nickname?.toLowerCase().trim() ?? "").split("|")[0].trim();
+    const username = member.user.username.toLowerCase().trim();
 
     const reportChannel = guild.channels.cache.find((ch) => {
       const chName = "name" in ch ? (ch as any).name as string : "";
       const name = chName.toLowerCase();
-      return name === `рапорт-${username}` || name.startsWith(`рапорт-${username}`);
+      if (!name.startsWith("рапорт-")) return false;
+      const suffix = name.replace("рапорт-", "").trim();
+      const matches = (a: string, b: string) =>
+        b && (a === b || a.startsWith(b) || b.startsWith(a));
+      return (
+        matches(suffix, username) ||
+        (nickBeforePipe && matches(suffix, nickBeforePipe)) ||
+        (nameBeforePipe && matches(suffix, nameBeforePipe))
+      );
     }) as TextChannel | undefined;
 
     if (!reportChannel) {
@@ -54,6 +71,7 @@ export async function sendPersonalReport(
     const msgOk = user.messages >= normNorm.messages;
     const voiceStr = formatTime(user.voiceSeconds);
 
+    // ── Куратор-рапорт ──
     if (user.isCurator) {
       const cn = normNorm.curator;
       const cs = user.curatorStats;
@@ -90,10 +108,44 @@ export async function sendPersonalReport(
       ].join("\n");
 
       await reportChannel.send(text);
-      console.log(`[Report] Куратор-рапорт отправлен в канал рапорт-${username}`);
+      console.log(`[Report] Куратор-рапорт отправлен: ${displayName}`);
       return;
     }
 
+    // ── Модератор-рапорт ──
+    if (user.isModerator) {
+      const mn = normNorm.moderator;
+      const ms = user.moderatorStats;
+
+      const aktivOk = ms.aktiv >= mn.aktiv;
+      const tiketOk = ms.tiket >= mn.tiket;
+      const allOk   = voiceOk && msgOk && aktivOk && tiketOk;
+
+      const text = [
+        `# **Клан-модератор: ${displayName}**`,
+        `## Отчет с ${dateRange}`,
+        `================================`,
+        `**> Активность в голосовых каналах - ${voiceOk ? "✅" : "❌"}`,
+        `> ${voiceStr} / ${normNorm.voiceHours}ч`,
+        `================================`,
+        `> Активность в текстовых каналах - ${msgOk ? "✅" : "❌"}`,
+        `> ${user.messages} / ${normNorm.messages}`,
+        `================================`,
+        `> Норма по активам - ${aktivOk ? "✅" : "❌"}`,
+        `> ${ms.aktiv} / ${mn.aktiv}`,
+        `================================`,
+        `> Норма по тикетам - ${tiketOk ? "✅" : "❌"}`,
+        `> ${ms.tiket} / ${mn.tiket}**`,
+        `================================`,
+        allOk ? `### ✅ Недельная норма выполнена` : `### ❌ Недельная норма не выполнена`,
+      ].join("\n");
+
+      await reportChannel.send(text);
+      console.log(`[Report] Модератор-рапорт отправлен: ${displayName}`);
+      return;
+    }
+
+    // ── Обычный участник ──
     const voiceIcon = voiceOk ? "✅" : "❌";
     const msgIcon = msgOk ? "✅" : "❌";
     const normStr =
@@ -115,7 +167,7 @@ export async function sendPersonalReport(
     ].join("\n");
 
     await reportChannel.send(text);
-    console.log(`[Report] Отправлено в канал рапорт-${username}`);
+    console.log(`[Report] Отправлено: ${displayName}`);
   } catch (e) {
     console.warn(`[Report] Ошибка отправки для ${displayName}:`, e);
   }
@@ -133,6 +185,9 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
     console.error("[Report] Канал не найден или не является текстовым");
     return;
   }
+
+  // Пересканируем статы кураторов и модераторов перед отчётом
+  await rescanCuratorStats(client);
 
   const users = getActiveUsers();
   const norm = getNorm();
@@ -158,7 +213,7 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
     const msgOk = user.messages >= norm.messages;
     let normPassed = voiceOk && msgOk;
 
-    // У куратора норма включает ещё и curator stats
+    // Для куратора норма включает curator stats
     if (user.isCurator) {
       const cn = norm.curator;
       const cs = user.curatorStats;
@@ -168,6 +223,16 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
         cs.tiket >= cn.tiket &&
         cs.proverka >= cn.proverka &&
         cs.spisok >= cn.spisok;
+    }
+
+    // Для модератора норма включает moderator stats
+    if (user.isModerator) {
+      const mn = norm.moderator;
+      const ms = user.moderatorStats;
+      normPassed =
+        normPassed &&
+        ms.aktiv >= mn.aktiv &&
+        ms.tiket >= mn.tiket;
     }
 
     const voiceStr = formatTime(user.voiceSeconds);
@@ -193,10 +258,16 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
       if (user.isCurator) {
         const cn = norm.curator;
         const cs = user.curatorStats;
-        if (cs.obzvon < cn.obzvon) reasons.push(`мало обзвонов (${cs.obzvon}/${cn.obzvon})`);
-        if (cs.tiket < cn.tiket) reasons.push(`мало тикетов (${cs.tiket}/${cn.tiket})`);
+        if (cs.obzvon < cn.obzvon)     reasons.push(`мало обзвонов (${cs.obzvon}/${cn.obzvon})`);
+        if (cs.tiket < cn.tiket)       reasons.push(`мало тикетов (${cs.tiket}/${cn.tiket})`);
         if (cs.proverka < cn.proverka) reasons.push(`мало проверок (${cs.proverka}/${cn.proverka})`);
-        if (cs.spisok < cn.spisok) reasons.push(`мало списков (${cs.spisok}/${cn.spisok})`);
+        if (cs.spisok < cn.spisok)     reasons.push(`мало списков (${cs.spisok}/${cn.spisok})`);
+      }
+      if (user.isModerator) {
+        const mn = norm.moderator;
+        const ms = user.moderatorStats;
+        if (ms.aktiv < mn.aktiv) reasons.push(`мало активов (${ms.aktiv}/${mn.aktiv})`);
+        if (ms.tiket < mn.tiket) reasons.push(`мало тикетов (${ms.tiket}/${mn.tiket})`);
       }
       failed.push("❌ " + line + ` *(${reasons.join(", ")})*`);
     }

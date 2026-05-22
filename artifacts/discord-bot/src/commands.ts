@@ -276,7 +276,13 @@ export async function handleCommand(message: Message): Promise<void> {
       })
     );
 
-    await message.reply(`📊 **Текущая статистика:**\n${lines.join("\n")}`);
+    const embed = new EmbedBuilder()
+      .setTitle("📊 Текущая статистика")
+      .setDescription(lines.join("\n").slice(0, 4096))
+      .setColor(0x5865f2)
+      .setTimestamp()
+      .setFooter({ text: `Норма: ${norm.voiceHours}ч голос + ${norm.messages} сообщений` });
+    await message.reply({ embeds: [embed] });
     return;
   }
 
@@ -840,7 +846,12 @@ export async function handleCommand(message: Message): Promise<void> {
         return `**${displayName}**${excl}${cur}${mod}: голос ${u.voiceSeconds.toFixed(0)}с, ${u.messages} сообщ.`;
       })
     );
-    await message.reply("🔍 **Сырые данные:**\n" + lines.join("\n"));
+    const debugEmbed = new EmbedBuilder()
+      .setTitle("🔍 Сырые данные")
+      .setDescription(lines.join("\n").slice(0, 4096))
+      .setColor(0x99aab5)
+      .setTimestamp();
+    await message.reply({ embeds: [debugEmbed] });
     return;
   }
 

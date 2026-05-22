@@ -1,5 +1,5 @@
 import { Client, TextChannel } from "discord.js";
-import { getAllUsers, saveStats } from "./store.js";
+import { getAllUsers, saveStats, getWeekResetAt } from "./store.js";
 
 function getWeekStart(): number {
   const now = new Date();
@@ -7,17 +7,31 @@ function getWeekStart(): number {
   const monday = new Date(now);
   monday.setDate(now.getDate() - dow);
   monday.setHours(0, 0, 0, 0);
-  return monday.getTime();
+  const mondayTs = monday.getTime();
+
+  // Если с начала недели уже был сброс статов — считаем только после него,
+  // чтобы утренние сообщения понедельника не переходили в новую неделю
+  const resetAt = getWeekResetAt();
+  return resetAt !== null && resetAt > mondayTs ? resetAt : mondayTs;
+}
+
+function matchesSuffix(suffix: string, identifier: string): boolean {
+  if (!identifier) return false;
+  return (
+    suffix === identifier ||
+    suffix.startsWith(identifier) ||
+    identifier.startsWith(suffix)
+  );
 }
 
 function findReportChannel(guild: import("discord.js").Guild, member: import("discord.js").GuildMember) {
   const username = member.user.username.toLowerCase().trim();
 
-  // Берём только часть ДО "|" — это никнейм, после "|" — тег роли (не нужен)
+  // Берём только часть ДО "|" — это и есть никнейм, часть после "|" это тег роли
   const displayName = member.displayName.toLowerCase().trim();
   const nameBeforePipe = displayName.split("|")[0].trim();
 
-  // Серверный ник тоже только до "|"
+  // Серверный ник тоже берём только до "|"
   const rawNick = member.nickname?.toLowerCase().trim() ?? "";
   const nickBeforePipe = rawNick.split("|")[0].trim();
 
