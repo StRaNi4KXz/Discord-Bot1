@@ -22,7 +22,6 @@ export async function catchUpMissedMessages(client: Client, since: number): Prom
   for (const guild of client.guilds.cache.values()) {
     try {
       await guild.channels.fetch();
-      await guild.members.fetch();
     } catch {
       console.warn(`[CatchUp] Не удалось получить каналы гильдии ${guild.name}`);
       continue;

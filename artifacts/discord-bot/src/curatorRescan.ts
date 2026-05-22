@@ -65,14 +65,15 @@ export async function rescanCuratorStats(client: Client): Promise<void> {
   for (const guild of client.guilds.cache.values()) {
     try {
       await guild.channels.fetch();
-      await guild.members.fetch();
     } catch {
       continue;
     }
 
     // ── Кураторы ──
     for (const curator of curators) {
-      const member = guild.members.cache.get(curator.userId);
+      const member =
+        guild.members.cache.get(curator.userId) ??
+        (await guild.members.fetch(curator.userId).catch(() => null));
       if (!member) continue;
 
       const reportChannel = findReportChannel(guild, member);
@@ -141,7 +142,9 @@ export async function rescanCuratorStats(client: Client): Promise<void> {
 
     // ── Модераторы ──
     for (const moderator of moderators) {
-      const member = guild.members.cache.get(moderator.userId);
+      const member =
+        guild.members.cache.get(moderator.userId) ??
+        (await guild.members.fetch(moderator.userId).catch(() => null));
       if (!member) continue;
 
       const reportChannel = findReportChannel(guild, member);

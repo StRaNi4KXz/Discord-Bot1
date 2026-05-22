@@ -192,6 +192,10 @@ function shutdown() {
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
 
+client.on("error", (err) => {
+  console.error("[Bot] WebSocket error (non-fatal):", err.message);
+});
+
 client.login(config.token).catch((err) => {
   console.error("[Bot] Ошибка авторизации:", err.message);
   process.exit(1);

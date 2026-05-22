@@ -587,7 +587,6 @@ export async function handleCommand(message: Message): Promise<void> {
     }
 
     await guild.channels.fetch();
-    await guild.members.fetch();
 
     const curatorMap = new Map(curators.map((u) => [u.userId, u]));
     const reportChannels = guild.channels.cache.filter(
@@ -685,7 +684,6 @@ export async function handleCommand(message: Message): Promise<void> {
     }
 
     await guild.channels.fetch();
-    await guild.members.fetch();
 
     const moderatorMap = new Map(moderators.map((u) => [u.userId, u]));
     const reportChannels = guild.channels.cache.filter(
@@ -872,7 +870,6 @@ export async function handleCommand(message: Message): Promise<void> {
     lastTestReportAt = now;
 
     await guild.channels.fetch();
-    await guild.members.fetch();
 
     const reportChannels = guild.channels.cache.filter(
       (ch) => ch.type === 0 && ch.name.toLowerCase().startsWith("рапорт-")
