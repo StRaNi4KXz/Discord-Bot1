@@ -7,6 +7,8 @@ import {
   Interaction,
   ButtonInteraction,
   ChannelType,
+  GuildMember,
+  PartialGuildMember,
 } from "discord.js";
 import cron from "node-cron";
 import { config } from "./config.js";
@@ -20,6 +22,7 @@ import {
   incrementCuratorStat,
   incrementModeratorStat,
   getUser,
+  excludeUser,
   type CuratorStatKey,
   type ModeratorStatKey,
 } from "./store.js";
@@ -96,6 +99,15 @@ client.on(Events.VoiceStateUpdate, (oldState: VoiceState, newState: VoiceState) 
     recordVoiceLeave(userId, username);
     recordVoiceJoin(userId, username);
     console.log(`[Voice] ${username} СМЕНИЛ канал: #${oldState.channel?.name} → #${newState.channel?.name}`);
+  }
+});
+
+client.on(Events.GuildMemberRemove, (member: GuildMember | PartialGuildMember) => {
+  const userId = member.id;
+  const username = member.user?.username ?? userId;
+  if (excludeUser) {
+    excludeUser(userId, username);
+    console.log(`[Bot] Участник ${username} покинул сервер — исключён из учёта.`);
   }
 });
 
