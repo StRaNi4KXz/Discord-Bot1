@@ -1,15 +1,15 @@
 {
-  "lastSeenAt": 1779693066387,
-  "weekResetAt": 1779693154883,
+  "lastSeenAt": 1779711548886,
+  "weekResetAt": 1779711339620,
   "users": [
     {
       "userId": "1405271296891289752",
       "username": "suretomato",
-      "messages": 0,
+      "messages": 2,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 1286,
-      "totalVoiceSeconds": 255907.027,
+      "totalMessages": 1300,
+      "totalVoiceSeconds": 256233.187,
       "excluded": false,
       "streak": 0,
       "bestStreak": 1,
@@ -258,7 +258,7 @@
       "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 191,
+      "totalMessages": 193,
       "totalVoiceSeconds": 60477.918,
       "excluded": false,
       "streak": 0,
@@ -271,7 +271,7 @@
         "spisok": 0
       },
       "isCurator": false,
-      "isModerator": false,
+      "isModerator": true,
       "moderatorStats": {
         "aktiv": 0,
         "tiket": 0
@@ -383,7 +383,7 @@
       "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 347,
+      "totalMessages": 361,
       "totalVoiceSeconds": 242693.19199999998,
       "excluded": false,
       "streak": 0,
@@ -908,7 +908,7 @@
       "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 6,
+      "totalMessages": 8,
       "totalVoiceSeconds": 8400,
       "excluded": false,
       "isCurator": false,
@@ -987,7 +987,7 @@
       "totalVoiceSeconds": 12480,
       "excluded": false,
       "isCurator": false,
-      "isModerator": false,
+      "isModerator": true,
       "streak": 0,
       "bestStreak": 1,
       "curatorStats": {

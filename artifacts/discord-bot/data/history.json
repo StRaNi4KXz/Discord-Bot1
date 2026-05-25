@@ -999,5 +999,131 @@
         "passed": false
       }
     ]
+  },
+  {
+    "weekEnding": "2026-05-25",
+    "voiceHoursNorm": 2,
+    "messagesNorm": 40,
+    "users": [
+      {
+        "userId": "1405271296891289752",
+        "displayName": "Tomatik24552 | Pad",
+        "messages": 12,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1250411846947835920",
+        "displayName": "UtterKoala92223 | PE/MC",
+        "messages": 0,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1297465830812160052",
+        "displayName": "shisui9800 | PC",
+        "messages": 0,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1165003088516624494",
+        "displayName": "nazartrx1 | PC",
+        "messages": 14,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1114829709985972225",
+        "displayName": "LoserSl9792 | PC",
+        "messages": 0,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1324813885026599053",
+        "displayName": "S1nCub1kxa | iOS",
+        "messages": 0,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1233824306337943558",
+        "displayName": "Olega1604 | PC",
+        "messages": 0,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1492878112453820416",
+        "displayName": "Overdrive717 | PC",
+        "messages": 0,
+        "voiceSeconds": 0,
+        "passed": false
+      }
+    ]
+  },
+  {
+    "weekEnding": "2026-05-25",
+    "voiceHoursNorm": 2,
+    "messagesNorm": 40,
+    "users": [
+      {
+        "userId": "1405271296891289752",
+        "displayName": "Tomatik24552 | Pad",
+        "messages": 0,
+        "voiceSeconds": 326.16,
+        "passed": false
+      },
+      {
+        "userId": "1250411846947835920",
+        "displayName": "UtterKoala92223 | PE/MC",
+        "messages": 0,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1297465830812160052",
+        "displayName": "shisui9800 | PC",
+        "messages": 2,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1165003088516624494",
+        "displayName": "nazartrx1 | PC",
+        "messages": 0,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1114829709985972225",
+        "displayName": "LoserSl9792 | PC",
+        "messages": 0,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1324813885026599053",
+        "displayName": "S1nCub1kxa | iOS",
+        "messages": 0,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1233824306337943558",
+        "displayName": "Olega1604 | PC",
+        "messages": 2,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1492878112453820416",
+        "displayName": "Overdrive717 | PC",
+        "messages": 0,
+        "voiceSeconds": 0,
+        "passed": false
+      }
+    ]
   }
 ]
