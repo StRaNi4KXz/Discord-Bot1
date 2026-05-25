@@ -1,6 +1,6 @@
 {
-  "lastSeenAt": 1779692287926,
-  "weekResetAt": 1779692378499,
+  "lastSeenAt": 1779693066387,
+  "weekResetAt": 1779693154883,
   "users": [
     {
       "userId": "1405271296891289752",
@@ -261,7 +261,7 @@
       "totalMessages": 191,
       "totalVoiceSeconds": 60477.918,
       "excluded": false,
-      "streak": 1,
+      "streak": 0,
       "bestStreak": 1,
       "curatorStats": {
         "obzvon": 0,
@@ -988,7 +988,7 @@
       "excluded": false,
       "isCurator": false,
       "isModerator": false,
-      "streak": 1,
+      "streak": 0,
       "bestStreak": 1,
       "curatorStats": {
         "obzvon": 0,

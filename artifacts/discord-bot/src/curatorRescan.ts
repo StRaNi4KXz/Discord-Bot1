@@ -48,8 +48,8 @@ function findReportChannel(guild: import("discord.js").Guild, member: import("di
   });
 }
 
-export async function rescanCuratorStats(client: Client): Promise<void> {
-  const weekStart = getWeekStart();
+export async function rescanCuratorStats(client: Client, sinceOverride?: number): Promise<void> {
+  const weekStart = sinceOverride ?? getWeekStart();
   const allUsers = getAllUsers();
   const curators = allUsers.filter((u) => u.isCurator);
   const moderators = allUsers.filter((u) => u.isModerator);

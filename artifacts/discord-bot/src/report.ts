@@ -187,8 +187,12 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
     return;
   }
 
-  // Пересканируем статы кураторов и модераторов перед отчётом
-  await rescanCuratorStats(client);
+  // Пересканируем статы кураторов с прошлого понедельника (явно, независимо от weekResetAt)
+  const prevMonday = new Date();
+  const dow = prevMonday.getDay() === 0 ? 6 : prevMonday.getDay() - 1;
+  prevMonday.setDate(prevMonday.getDate() - dow - 7);
+  prevMonday.setHours(0, 0, 0, 0);
+  await rescanCuratorStats(client, prevMonday.getTime());
 
   const users = getActiveUsers();
   const norm = getNorm();
