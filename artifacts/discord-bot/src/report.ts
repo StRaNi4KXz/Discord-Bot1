@@ -14,8 +14,9 @@ function formatTime(seconds: number): string {
 function getWeekRange(): { monday: Date; sunday: Date } {
   const now = new Date();
   const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1;
+  // Прошлый понедельник — начало отчётного периода
   const monday = new Date(now);
-  monday.setDate(now.getDate() - dayOfWeek);
+  monday.setDate(now.getDate() - dayOfWeek - 7);
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
   return { monday, sunday };
