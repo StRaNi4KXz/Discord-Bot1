@@ -1,5 +1,5 @@
 {
-  "lastSeenAt": 1779691403804,
+  "lastSeenAt": 1779691473074,
   "weekResetAt": null,
   "users": [
     {
@@ -380,10 +380,10 @@
     {
       "userId": "1165003088516624494",
       "username": "nazartrx1",
-      "messages": 104,
+      "messages": 105,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 345,
+      "totalMessages": 346,
       "totalVoiceSeconds": 195893.19199999998,
       "excluded": false,
       "streak": 0,

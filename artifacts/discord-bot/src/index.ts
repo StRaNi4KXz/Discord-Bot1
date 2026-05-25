@@ -219,9 +219,9 @@ cron.schedule(cronExpr, async () => {
 });
 
 setTimeout(async () => {
-  console.log("[Cron] Разовый запуск отчёта через 2 минуты...");
+  console.log("[Cron] Разовый запуск отчёта через 30 минут...");
   await sendWeeklyReport(client);
-}, 2 * 60 * 1000);
+}, 30 * 60 * 1000);
 
 function shutdown() {
   console.log("[Bot] Завершение работы, сохраняю lastSeenAt...");
