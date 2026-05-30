@@ -258,31 +258,46 @@ export async function handleCommand(message: Message): Promise<void> {
 
   // ── !норма ──
   if (content === "!норма" || content === "!norm") {
-    const users = getActiveUsers();
+    if (!message.guild) return;
     const norm = getNorm();
-    if (users.length === 0) {
-      await message.reply("Статистика пуста — ещё никто не набрал активности.");
+
+    // Строим список из каналов рапорт-* (как в !км) — охватывает всех участников клана
+    const reportChannels = message.guild.channels.cache.filter(
+      (ch) => ch.name.startsWith("рапорт-") && ch.isTextBased()
+    );
+
+    const entries: { displayName: string; u: ReturnType<typeof getUser> }[] = [];
+    const seen = new Set<string>();
+
+    for (const ch of reportChannels.values()) {
+      if (!("permissionOverwrites" in ch)) continue;
+      const overwrites = (ch as any).permissionOverwrites?.cache as Map<string, any> | undefined;
+      if (!overwrites) continue;
+      for (const [id, overwrite] of overwrites.entries()) {
+        if (overwrite.type !== 1) continue;
+        if (id === message.guild.id) continue;
+        if (seen.has(id)) continue;
+        const member = await message.guild.members.fetch(id).catch(() => null);
+        if (!member) continue;
+        seen.add(id);
+        const username = member.user.username;
+        const u = getUser(id, username); // авто-регистрирует если новый
+        if (u.excluded) continue;
+        entries.push({ displayName: member.displayName, u });
+      }
+    }
+
+    if (entries.length === 0) {
+      await message.reply("Каналы рапорт-* не найдены или участников нет.");
       return;
     }
 
-    const resolved = await Promise.all(
-      users.map(async (u) => {
-        const member = await message.guild?.members.fetch(u.userId).catch(() => null);
-        if (message.guild && !member) {
-          excludeUser(u.userId, u.username);
-          return null;
-        }
-        return { u, displayName: member?.displayName ?? u.username };
-      })
-    );
-    const lines = resolved
-      .filter((r): r is { u: typeof users[0]; displayName: string } => r !== null)
-      .map(({ u, displayName }) => {
-        const voiceDone = u.voiceSeconds >= norm.voiceHours * 3600;
-        const msgDone = u.messages >= norm.messages;
-        const icon = voiceDone && msgDone ? "✅" : "❌";
-        return `${icon} **${displayName}** — голос: ${formatTime(u.voiceSeconds)}/${norm.voiceHours}ч, сообщений: ${u.messages}/${norm.messages}`;
-      });
+    const lines = entries.map(({ u, displayName }) => {
+      const voiceDone = u.voiceSeconds >= norm.voiceHours * 3600;
+      const msgDone = u.messages >= norm.messages;
+      const icon = voiceDone && msgDone ? "✅" : "❌";
+      return `${icon} **${displayName}** — голос: ${formatTime(u.voiceSeconds)}/${norm.voiceHours}ч, сообщений: ${u.messages}/${norm.messages}`;
+    });
 
     const embed = new EmbedBuilder()
       .setTitle("📊 Текущая статистика")

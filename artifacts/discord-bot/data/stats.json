@@ -1,14 +1,14 @@
 {
-  "lastSeenAt": 1780167439855,
+  "lastSeenAt": 1780167736860,
   "weekResetAt": 1779711339620,
   "users": [
     {
       "userId": "1405271296891289752",
       "username": "suretomato",
-      "messages": 345,
+      "messages": 353,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 1643,
+      "totalMessages": 1651,
       "totalVoiceSeconds": 256233.187,
       "excluded": false,
       "streak": 0,
@@ -980,10 +980,10 @@
     {
       "userId": "1492878112453820416",
       "username": "xd0w",
-      "messages": 29,
+      "messages": 38,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 76,
+      "totalMessages": 85,
       "totalVoiceSeconds": 12480,
       "excluded": false,
       "isCurator": false,
