@@ -304,20 +304,39 @@ export async function handleCommand(message: Message): Promise<void> {
 
   // ── !км ──
   if (content === "!км") {
-    const users = getActiveUsers();
-    if (users.length === 0) {
-      await message.reply("Нет участников клана.");
+    if (!message.guild) return;
+
+    // Собираем все каналы рапорт-*
+    const reportChannels = message.guild.channels.cache.filter(
+      (ch) => ch.name.startsWith("рапорт-") && ch.isTextBased()
+    );
+
+    if (reportChannels.size === 0) {
+      await message.reply("Каналы рапорт-* не найдены.");
       return;
     }
-    let kmCount = 0;
-    for (const u of users) {
-      const member = await message.guild?.members.fetch(u.userId).catch(() => null);
-      if (member) {
-        await message.channel.send(`<@${u.userId}>`);
-        kmCount++;
+
+    // Находим владельца каждого канала через permissionOverwrites (без bulk fetch)
+    const pinged = new Set<string>();
+    for (const ch of reportChannels.values()) {
+      if (!("permissionOverwrites" in ch)) continue;
+      const overwrites = (ch as any).permissionOverwrites?.cache as Map<string, any> | undefined;
+      if (!overwrites) continue;
+      for (const [id, overwrite] of overwrites.entries()) {
+        // type 1 = member (не роль)
+        if (overwrite.type !== 1) continue;
+        if (id === message.guild.id) continue;
+        if (pinged.has(id)) continue;
+        // Проверяем что участник всё ещё на сервере
+        const member = await message.guild.members.fetch(id).catch(() => null);
+        if (member) {
+          pinged.add(id);
+          await message.channel.send(`<@${id}>`);
+        }
       }
     }
-    await message.channel.send(`Конец списка. ${kmCount} км в общем`);
+
+    await message.channel.send(`Конец списка. ${pinged.size} км в общем`);
     return;
   }
 
