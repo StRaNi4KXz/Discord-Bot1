@@ -1,14 +1,14 @@
 {
-  "lastSeenAt": 1780297044323,
+  "lastSeenAt": 1780299865682,
   "weekResetAt": 1779711339620,
   "users": [
     {
       "userId": "1405271296891289752",
       "username": "suretomato",
-      "messages": 518,
+      "messages": 520,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 1816,
+      "totalMessages": 1818,
       "totalVoiceSeconds": 256233.187,
       "excluded": false,
       "streak": 0,

@@ -29,7 +29,8 @@ function fmtDate(d: Date): string {
 export async function sendPersonalReport(
   guild: Guild,
   user: UserStats,
-  displayName: string
+  displayName: string,
+  dateRange?: string
 ): Promise<void> {
   try {
     const member = await guild.members.fetch(user.userId).catch(() => null);
@@ -65,8 +66,10 @@ export async function sendPersonalReport(
     }
 
     const normNorm = getNorm();
-    const { monday, sunday } = getWeekRange();
-    const dateRange = `${fmtDate(monday)}-${fmtDate(sunday)}`;
+    if (!dateRange) {
+      const { monday, sunday } = getWeekRange();
+      dateRange = `${fmtDate(monday)}-${fmtDate(sunday)}`;
+    }
 
     const voiceOk = user.voiceSeconds >= normNorm.voiceHours * 3600;
     const msgOk = user.messages >= normNorm.messages;
@@ -174,7 +177,7 @@ export async function sendPersonalReport(
   }
 }
 
-export async function sendWeeklyReport(client: Client): Promise<void> {
+export async function sendWeeklyReport(client: Client, dateRange?: string): Promise<void> {
   const channelId = config.reportChannelId;
   if (!channelId) {
     console.error("[Report] DISCORD_REPORT_CHANNEL_ID не задан");
@@ -185,6 +188,12 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
   if (!channel || !channel.isTextBased()) {
     console.error("[Report] Канал не найден или не является текстовым");
     return;
+  }
+
+  // Вычисляем диапазон дат — либо переданный, либо прошлая неделя
+  if (!dateRange) {
+    const { monday, sunday } = getWeekRange();
+    dateRange = `${fmtDate(monday)}-${fmtDate(sunday)}`;
   }
 
   // Пересканируем статы кураторов с прошлого понедельника (явно, независимо от weekResetAt)
@@ -285,12 +294,12 @@ export async function sendWeeklyReport(client: Client): Promise<void> {
     }
 
     if (guild) {
-      await sendPersonalReport(guild, user, displayName);
+      await sendPersonalReport(guild, user, displayName, dateRange);
     }
   }
 
   const embed = new EmbedBuilder()
-    .setTitle("📋 Еженедельная проверка нормы активности")
+    .setTitle(`📋 Еженедельная проверка нормы активности | ${dateRange}`)
     .setColor(failed.length === 0 ? 0x57f287 : 0xed4245)
     .setTimestamp()
     .setFooter({ text: `Норма: ${norm.voiceHours}ч голос + ${norm.messages} сообщений` });

@@ -1097,10 +1097,16 @@ export async function handleCommand(message: Message): Promise<void> {
     return;
   }
 
-  // ── !отчёт ──
-  if (content === "!отчёт" || content === "!report") {
-    await message.reply("📊 Запускаю недельный отчёт...");
-    await sendWeeklyReport(message.client);
+  // ── !отчёт [дата1] [дата2] ──
+  const reportMatch = content.match(/^!отчёт(?:\s+(\d{1,2}\.\d{1,2})(?:\s+(\d{1,2}\.\d{1,2}))?)?$/i)
+    || content.match(/^!report(?:\s+(\d{1,2}\.\d{1,2})(?:\s+(\d{1,2}\.\d{1,2}))?)?$/i);
+  if (reportMatch) {
+    const date1 = reportMatch[1];
+    const date2 = reportMatch[2];
+    const dateRange = date1 && date2 ? `${date1}-${date2}` : undefined;
+    const label = dateRange ? ` за период ${dateRange}` : "";
+    await message.reply(`📊 Запускаю недельный отчёт${label}...`);
+    await sendWeeklyReport(message.client, dateRange);
     return;
   }
 
@@ -1139,7 +1145,7 @@ export async function handleCommand(message: Message): Promise<void> {
         {
           name: "📋 Рапорты",
           value: [
-            "`!отчёт` — запустить недельный отчёт вручную",
+            "`!отчёт [ДД.ММ ДД.ММ]` — запустить отчёт (с датами или без)",
             "`!вышестоящие` — статус кураторов и модераторов",
             "`!рапорткуратор` — отправить рапорты кураторам",
             "`!рапортмодер` — отправить рапорты модераторам",
