@@ -10,7 +10,6 @@ import {
   GuildMember,
   PartialGuildMember,
 } from "discord.js";
-import cron from "node-cron";
 import { config } from "./config.js";
 import {
   recordVoiceJoin,
@@ -212,11 +211,6 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
   }
 });
 
-const cronExpr = `${config.checkMinute} ${config.checkHour} * * ${config.checkDay}`;
-cron.schedule(cronExpr, async () => {
-  console.log("[Cron] Запуск еженедельной проверки нормы...");
-  await sendWeeklyReport(client);
-});
 
 function shutdown() {
   console.log("[Bot] Завершение работы, сохраняю lastSeenAt...");

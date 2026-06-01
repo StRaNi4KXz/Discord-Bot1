@@ -18,9 +18,9 @@ import {
   setModerator,
   type UserStats,
 } from "./store.js";
+import { sendWeeklyReport, sendPersonalReport } from "./report.js";
 import { config } from "./config.js";
 import { getNorm, setVoiceHours, setMessages, setCuratorNorm, setModeratorNorm, addIgnoredCategory, removeIgnoredCategory } from "./dynamicConfig.js";
-import { sendPersonalReport } from "./report.js";
 import { rescanCuratorStats } from "./curatorRescan.js";
 import { getHistory } from "./history.js";
 
@@ -1097,6 +1097,13 @@ export async function handleCommand(message: Message): Promise<void> {
     return;
   }
 
+  // ── !отчёт ──
+  if (content === "!отчёт" || content === "!report") {
+    await message.reply("📊 Запускаю недельный отчёт...");
+    await sendWeeklyReport(message.client);
+    return;
+  }
+
   // ── !помощь ──
   if (content === "!помощь" || content === "!help") {
     const embed = new EmbedBuilder()
@@ -1132,10 +1139,10 @@ export async function handleCommand(message: Message): Promise<void> {
         {
           name: "📋 Рапорты",
           value: [
+            "`!отчёт` — запустить недельный отчёт вручную",
             "`!вышестоящие` — статус кураторов и модераторов",
             "`!рапорткуратор` — отправить рапорты кураторам",
             "`!рапортмодер` — отправить рапорты модераторам",
-            "`!тестрапорт` — тестовый рапорт всем",
             "`!пересчёт` — пересканировать каналы рапортов",
           ].join("\n"),
         },
