@@ -22,6 +22,7 @@ export interface UserStats {
     proverka: number;
     proverkaKm: number;
     spisok: number;
+    aktiv: number;
   };
   moderatorStats: {
     aktiv: number;
@@ -74,7 +75,8 @@ export function loadStats(): void {
       u.isModerator = u.isModerator ?? false;
       u.streak = u.streak ?? 0;
       u.bestStreak = u.bestStreak ?? 0;
-      u.curatorStats = u.curatorStats ?? { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0 };
+      u.curatorStats = u.curatorStats ?? { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0, aktiv: 0 };
+      u.curatorStats.aktiv = u.curatorStats.aktiv ?? 0;
       u.moderatorStats = u.moderatorStats ?? { aktiv: 0, tiket: 0 };
       stats.set(u.userId, u);
     }
@@ -122,7 +124,7 @@ export function getUser(userId: string, username: string): UserStats {
       isModerator: false,
       streak: 0,
       bestStreak: 0,
-      curatorStats: { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0 },
+      curatorStats: { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0, aktiv: 0 },
       moderatorStats: { aktiv: 0, tiket: 0 },
     });
   }
@@ -160,7 +162,7 @@ export function resetAllStats(): void {
     user.messages = 0;
     user.voiceSeconds = 0;
     user.voiceJoinedAt = null;
-    user.curatorStats = { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0 };
+    user.curatorStats = { obzvon: 0, tiket: 0, proverka: 0, proverkaKm: 0, spisok: 0, aktiv: 0 };
     user.moderatorStats = { aktiv: 0, tiket: 0 };
   }
   saveStats();

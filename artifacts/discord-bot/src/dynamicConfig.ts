@@ -24,6 +24,7 @@ interface DynamicNorm {
       tiket: number;
       proverkaKm: number;
       spisok: number;
+      aktiv: number;
       bonus: number;
     };
     moderator: {
@@ -46,6 +47,7 @@ let norm: DynamicNorm = {
       tiket: 180,
       proverkaKm: 230,
       spisok: 120,
+      aktiv: 100,
       bonus: 670,
     },
     moderator: {

@@ -158,6 +158,7 @@ client.on(Events.MessageCreate, async (message: Message) => {
       else if (lower.startsWith("+проверка"))                                       stat = "proverka";
       else if (lower.startsWith("+тикет"))                                          stat = "tiket";
       else if (lower.startsWith("+список"))                                         stat = "spisok";
+      else if (lower.startsWith("+актив"))                                          stat = "aktiv";
 
       if (stat) {
         incrementCuratorStat(userId, username, stat);

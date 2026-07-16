@@ -493,10 +493,11 @@ export async function handleCommand(message: Message): Promise<void> {
           // Зарплата
           const salary =
             cs_salary.bonus +
-            cs.obzvon   * cs_salary.obzvon +
-            cs.tiket    * cs_salary.tiket +
+            cs.obzvon     * cs_salary.obzvon +
+            cs.tiket      * cs_salary.tiket +
             cs.proverkaKm * cs_salary.proverkaKm +
-            cs.spisok   * cs_salary.spisok;
+            cs.spisok     * cs_salary.spisok +
+            cs.aktiv      * cs_salary.aktiv;
 
           return (
             `${allOk ? "✅" : "❌"} **${displayName}**\n` +
@@ -505,6 +506,7 @@ export async function handleCommand(message: Message): Promise<void> {
             `> 🎫 Тикеты: ${cs.tiket}/${cn.tiket} (${cs.tiket * cs_salary.tiket} сф) ${tiketOk ? "✅" : "❌"}\n` +
             `> 🔍 Проверки КМ: ${cs.proverkaKm}/${cn.proverkaKm} (${cs.proverkaKm * cs_salary.proverkaKm} сф) ${proverkaKmOk ? "✅" : "❌"}\n` +
             `> 📋 Списки: ${cs.spisok}/${cn.spisok} (${cs.spisok * cs_salary.spisok} сф) ${spisokOk ? "✅" : "❌"}\n` +
+            (cs.aktiv > 0 ? `> 🟢 Активы (бонус): ${cs.aktiv} (${cs.aktiv * cs_salary.aktiv} сф)\n` : "") +
             `> 💰 **Зарплата: ${salary} сф** (бонус куратора: ${cs_salary.bonus} сф)`
           );
         })
@@ -590,6 +592,7 @@ export async function handleCommand(message: Message): Promise<void> {
         "проверка": "proverkaKm",
         "провекра": "proverkaKm",
         список: "spisok",
+        актив: "aktiv",
         бонус: "bonus",
       };
       const moderatorKeys: Record<string, string> = {
@@ -602,7 +605,7 @@ export async function handleCommand(message: Message): Promise<void> {
         const key = curatorKeys[keyRaw];
         if (!key) {
           await message.reply(
-            `❌ Неизвестная позиция куратора. Доступные: \`обзвон\`, \`тикет\`, \`проверка\`, \`список\`, \`бонус\``
+            `❌ Неизвестная позиция куратора. Доступные: \`обзвон\`, \`тикет\`, \`проверка\`, \`список\`, \`актив\`, \`бонус\``
           );
           return;
         }
@@ -639,6 +642,7 @@ export async function handleCommand(message: Message): Promise<void> {
             `• Тикет: **${cs.tiket} сф**`,
             `• Проверка КМ: **${cs.proverkaKm} сф**`,
             `• Список: **${cs.spisok} сф**`,
+            `• Актив (бонус, не обязателен): **${cs.aktiv} сф**`,
             `• Бонус за роль куратора: **${cs.bonus} сф**`,
           ].join("\n"),
           inline: true,
