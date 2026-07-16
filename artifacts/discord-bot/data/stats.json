@@ -1,14 +1,14 @@
 {
-  "lastSeenAt": 1784209072436,
-  "weekResetAt": 1783337102549,
+  "lastSeenAt": 1784209430428,
+  "weekResetAt": 1784209156956,
   "users": [
     {
       "userId": "1405271296891289752",
       "username": "suretomato",
-      "messages": 18,
+      "messages": 2,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 2017,
+      "totalMessages": 2019,
       "totalVoiceSeconds": 288333.18700000003,
       "excluded": false,
       "streak": 0,
@@ -187,8 +187,8 @@
     {
       "userId": "1472091449842729085",
       "username": "bil215777",
-      "messages": 62,
-      "voiceSeconds": 180.924,
+      "messages": 0,
+      "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 329,
       "totalVoiceSeconds": 36791.815,
@@ -196,11 +196,11 @@
       "streak": 0,
       "bestStreak": 0,
       "curatorStats": {
-        "obzvon": 6,
-        "tiket": 1,
-        "proverka": 1,
+        "obzvon": 0,
+        "tiket": 0,
+        "proverka": 0,
         "proverkaKm": 0,
-        "spisok": 1,
+        "spisok": 0,
         "aktiv": 0
       },
       "isCurator": true,
@@ -1123,10 +1123,10 @@
     {
       "userId": "1194365273394913327",
       "username": "stranick_",
-      "messages": 50,
+      "messages": 1,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 247,
+      "totalMessages": 248,
       "totalVoiceSeconds": 0,
       "excluded": false,
       "isCurator": false,
@@ -1149,7 +1149,7 @@
     {
       "userId": "1058056505884168222",
       "username": "ilnar124",
-      "messages": 39,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 171,
@@ -1201,7 +1201,7 @@
     {
       "userId": "1177613302898098227",
       "username": "inkognito9009",
-      "messages": 1,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 107,
@@ -1227,7 +1227,7 @@
     {
       "userId": "1110259345482072147",
       "username": "jjmmmmmmmmmmm",
-      "messages": 7,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 34,
@@ -1253,7 +1253,7 @@
     {
       "userId": "1507606273837764608",
       "username": "kokkorouo",
-      "messages": 37,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 105,
@@ -1435,7 +1435,7 @@
     {
       "userId": "1180423886114922506",
       "username": "sigma7770547",
-      "messages": 8,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 34,
@@ -1461,7 +1461,7 @@
     {
       "userId": "898835571789660201",
       "username": ".dedbeddead",
-      "messages": 1,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 17,
@@ -1487,10 +1487,10 @@
     {
       "userId": "1165697977470431303",
       "username": "mistercolumbw1st",
-      "messages": 6,
+      "messages": 12,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 52,
+      "totalMessages": 64,
       "totalVoiceSeconds": 0,
       "excluded": false,
       "isCurator": false,
@@ -1617,7 +1617,7 @@
     {
       "userId": "1244643503628226610",
       "username": "tawnybead_03259",
-      "messages": 47,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 69,
@@ -1643,7 +1643,7 @@
     {
       "userId": "1400835018657366082",
       "username": "qwi0wll",
-      "messages": 6,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 30,
@@ -1669,7 +1669,7 @@
     {
       "userId": "1392082750936453162",
       "username": "wizert9_49317",
-      "messages": 3,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 3,
@@ -1695,7 +1695,7 @@
     {
       "userId": "1473764670279127232",
       "username": "wezzykryt",
-      "messages": 3,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 3,
@@ -1721,7 +1721,7 @@
     {
       "userId": "990726129277087804",
       "username": "xlovelycrazydanford",
-      "messages": 1,
+      "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
       "totalMessages": 1,
@@ -1747,10 +1747,10 @@
     {
       "userId": "1492930358700806405",
       "username": "terefdfe121331",
-      "messages": 7,
+      "messages": 15,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 7,
+      "totalMessages": 22,
       "totalVoiceSeconds": 0,
       "excluded": false,
       "isCurator": false,

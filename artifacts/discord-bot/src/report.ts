@@ -1,5 +1,5 @@
 import { EmbedBuilder, TextChannel, Client } from "discord.js";
-import { getActiveUsers, resetAllStats, updateUserStreak, excludeUser } from "./store.js";
+import { getActiveUsers, resetAllStats, updateUserStreak, excludeUser, UserStats } from "./store.js";
 import { config } from "./config.js";
 import { getNorm } from "./dynamicConfig.js";
 import { saveWeekSnapshot } from "./history.js";
@@ -13,7 +13,6 @@ function formatTime(seconds: number): string {
 function getWeekRange(): { monday: Date; sunday: Date } {
   const now = new Date();
   const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1;
-  // Прошлый понедельник — начало отчётного периода
   const monday = new Date(now);
   monday.setDate(now.getDate() - dayOfWeek - 7);
   const sunday = new Date(monday);
@@ -25,6 +24,126 @@ function fmtDate(d: Date): string {
   return `${d.getDate().toString().padStart(2, "0")}.${(d.getMonth() + 1).toString().padStart(2, "0")}`;
 }
 
+// ── Персональный рапорт куратора (ДМ) ─────────────────────────────────────────
+
+async function sendCuratorDM(
+  client: Client,
+  user: UserStats,
+  displayName: string,
+  dateRange: string
+): Promise<void> {
+  const norm = getNorm();
+  const cn = norm.curator;
+  const cs = user.curatorStats;
+  const sal = norm.salary.curator;
+
+  const voiceOk    = user.voiceSeconds >= norm.voiceHours * 3600;
+  const msgOk      = user.messages >= norm.messages;
+  const obzvonOk   = cs.obzvon >= cn.obzvon;
+  const proverkaKmOk = cs.proverkaKm >= cn.proverkaKm;
+  const spisokOk   = cs.spisok >= cn.spisok;
+  const normPassed = voiceOk && msgOk && obzvonOk && proverkaKmOk && spisokOk;
+
+  const tiketSf    = cs.tiket * sal.tiket;
+  const obzvonSf   = cs.obzvon * sal.obzvon;
+  const proverkaKmSf = cs.proverkaKm * sal.proverkaKm;
+  const spisokSf   = cs.spisok * sal.spisok;
+  const aktivSf    = cs.aktiv * sal.aktiv;
+  const totalSalary = sal.bonus + tiketSf + obzvonSf + proverkaKmSf + spisokSf + aktivSf;
+
+  const normLine = normPassed
+    ? `# Недельная норма выполнена <a:rts_oks:713056535546167389>`
+    : `# Недельная норма не выполнена <a:rts_Animated_Cross:739902221042319392>`;
+
+  const lines: string[] = [
+    `# Куратор (${displayName})`,
+    `## Отчёт с ${dateRange}`,
+    `**=====================**`,
+    `** Тикеты ** - ${cs.tiket} (бонус) = ${tiketSf} сф`,
+    ``,
+    `** Обзвон** - ${cs.obzvon}/${cn.obzvon} ${obzvonOk ? "✅" : "❌"} = ${obzvonSf} сф`,
+    ``,
+    `** Проверка км** - ${cs.proverkaKm}/${cn.proverkaKm} ${proverkaKmOk ? "✅" : "❌"} = ${proverkaKmSf} сф`,
+    ``,
+    `** Список** - ${cs.spisok}/${cn.spisok} ${spisokOk ? "✅" : "❌"} = ${spisokSf} сф`,
+    ``,
+    ...(cs.aktiv > 0 ? [`** Актив** - ${cs.aktiv} (бонус) = ${aktivSf} сф`, ``] : []),
+    `**Бонусные роли: Clan Curator + ${sal.bonus} сф**`,
+    ``,
+    `**=====================**`,
+    normLine,
+    `# Общая зарплата: ${totalSalary} сапфиров`,
+  ];
+
+  try {
+    const discordUser = await client.users.fetch(user.userId).catch(() => null);
+    if (!discordUser) {
+      console.warn(`[Report] Не удалось найти пользователя для ДМ: ${displayName}`);
+      return;
+    }
+    await discordUser.send(lines.join("\n"));
+    console.log(`[Report] Куратор-рапорт (ДМ) отправлен: ${displayName}`);
+  } catch (e) {
+    console.warn(`[Report] Не удалось отправить ДМ куратору ${displayName}:`, e);
+  }
+}
+
+// ── Персональный рапорт модератора (ДМ) ──────────────────────────────────────
+
+async function sendModeratorDM(
+  client: Client,
+  user: UserStats,
+  displayName: string,
+  dateRange: string
+): Promise<void> {
+  const norm = getNorm();
+  const mn = norm.moderator;
+  const ms = user.moderatorStats;
+  const sal = norm.salary.moderator;
+
+  const voiceOk = user.voiceSeconds >= norm.voiceHours * 3600;
+  const msgOk   = user.messages >= norm.messages;
+  const aktivOk = ms.aktiv >= mn.aktiv;
+  const tiketOk = ms.tiket >= mn.tiket;
+  const normPassed = voiceOk && msgOk && aktivOk && tiketOk;
+
+  const aktivSf = ms.aktiv * sal.aktiv;
+  const tiketSf = ms.tiket * sal.tiket;
+  const totalSalary = sal.bonus + aktivSf + tiketSf;
+
+  const normLine = normPassed
+    ? `# Недельная норма выполнена <a:rts_oks:713056535546167389>`
+    : `# Недельная норма не выполнена <a:rts_Animated_Cross:739902221042319392>`;
+
+  const lines: string[] = [
+    `# Клан-модератор (${displayName})`,
+    `## Отчёт с ${dateRange}`,
+    `**=====================**`,
+    `** Активы** - ${ms.aktiv}/${mn.aktiv} ${aktivOk ? "✅" : "❌"} = ${aktivSf} сф`,
+    ``,
+    `** Тикеты** - ${ms.tiket}/${mn.tiket} ${tiketOk ? "✅" : "❌"} = ${tiketSf} сф`,
+    ``,
+    `**Бонусные роли: Clan Moderator + ${sal.bonus} сф**`,
+    ``,
+    `**=====================**`,
+    normLine,
+    `# Общая зарплата: ${totalSalary} сапфиров`,
+  ];
+
+  try {
+    const discordUser = await client.users.fetch(user.userId).catch(() => null);
+    if (!discordUser) {
+      console.warn(`[Report] Не удалось найти пользователя для ДМ: ${displayName}`);
+      return;
+    }
+    await discordUser.send(lines.join("\n"));
+    console.log(`[Report] Модератор-рапорт (ДМ) отправлен: ${displayName}`);
+  } catch (e) {
+    console.warn(`[Report] Не удалось отправить ДМ модератору ${displayName}:`, e);
+  }
+}
+
+// ── Главный недельный отчёт ───────────────────────────────────────────────────
 
 export async function sendWeeklyReport(client: Client, dateRange?: string): Promise<void> {
   const channelId = config.reportChannelId;
@@ -39,7 +158,6 @@ export async function sendWeeklyReport(client: Client, dateRange?: string): Prom
     return;
   }
 
-  // Вычисляем диапазон дат — либо переданный, либо прошлая неделя
   if (!dateRange) {
     const { monday, sunday } = getWeekRange();
     dateRange = `${fmtDate(monday)}-${fmtDate(sunday)}`;
@@ -76,19 +194,17 @@ export async function sendWeeklyReport(client: Client, dateRange?: string): Prom
     const msgOk = user.messages >= norm.messages;
     let normPassed = voiceOk && msgOk;
 
-    // Для куратора норма включает curator stats
+    // Куратор: тикеты и активы — бонус, не норма
     if (user.isCurator) {
       const cn = norm.curator;
       const cs = user.curatorStats;
       normPassed =
         normPassed &&
         cs.obzvon >= cn.obzvon &&
-        cs.tiket >= cn.tiket &&
-        cs.proverka >= cn.proverka &&
+        cs.proverkaKm >= cn.proverkaKm &&
         cs.spisok >= cn.spisok;
     }
 
-    // Для модератора норма включает moderator stats
     if (user.isModerator) {
       const mn = norm.moderator;
       const ms = user.moderatorStats;
@@ -121,10 +237,9 @@ export async function sendWeeklyReport(client: Client, dateRange?: string): Prom
       if (user.isCurator) {
         const cn = norm.curator;
         const cs = user.curatorStats;
-        if (cs.obzvon < cn.obzvon)     reasons.push(`мало обзвонов (${cs.obzvon}/${cn.obzvon})`);
-        if (cs.tiket < cn.tiket)       reasons.push(`мало тикетов (${cs.tiket}/${cn.tiket})`);
-        if (cs.proverka < cn.proverka) reasons.push(`мало проверок (${cs.proverka}/${cn.proverka})`);
-        if (cs.spisok < cn.spisok)     reasons.push(`мало списков (${cs.spisok}/${cn.spisok})`);
+        if (cs.obzvon < cn.obzvon)         reasons.push(`мало обзвонов (${cs.obzvon}/${cn.obzvon})`);
+        if (cs.proverkaKm < cn.proverkaKm) reasons.push(`мало проверок КМ (${cs.proverkaKm}/${cn.proverkaKm})`);
+        if (cs.spisok < cn.spisok)         reasons.push(`мало списков (${cs.spisok}/${cn.spisok})`);
       }
       if (user.isModerator) {
         const mn = norm.moderator;
@@ -135,6 +250,12 @@ export async function sendWeeklyReport(client: Client, dateRange?: string): Prom
       failed.push("❌ " + line + ` *(${reasons.join(", ")})*`);
     }
 
+    // Персональный ДМ кураторам и модераторам
+    if (user.isCurator) {
+      await sendCuratorDM(client, user, displayName, dateRange);
+    } else if (user.isModerator) {
+      await sendModeratorDM(client, user, displayName, dateRange);
+    }
   }
 
   const embed = new EmbedBuilder()

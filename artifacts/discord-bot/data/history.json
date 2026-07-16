@@ -1314,5 +1314,138 @@
         "passed": false
       }
     ]
+  },
+  {
+    "weekEnding": "2026-07-16",
+    "voiceHoursNorm": 2,
+    "messagesNorm": 40,
+    "users": [
+      {
+        "userId": "1405271296891289752",
+        "displayName": "Tomatik24552 | Pad (до 25.07)",
+        "messages": 18,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1472091449842729085",
+        "displayName": "Neg0tiv1337 | PE",
+        "messages": 62,
+        "voiceSeconds": 180.924,
+        "passed": false
+      },
+      {
+        "userId": "1194365273394913327",
+        "displayName": "StRaNi4KXz",
+        "messages": 50,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1058056505884168222",
+        "displayName": "𝓪𝓴𝓪 𝓜𝓮1𝓴𝓲",
+        "messages": 39,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "444535383393566720",
+        "displayName": "дурак какой-то",
+        "messages": 0,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1177613302898098227",
+        "displayName": "#Неизвестный",
+        "messages": 1,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1110259345482072147",
+        "displayName": "Nevertop228 | PC",
+        "messages": 7,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1507606273837764608",
+        "displayName": "! кока alien mode",
+        "messages": 37,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1341820741800165399",
+        "displayName": "HungryManx04395 | PC (15.08)",
+        "messages": 0,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1180423886114922506",
+        "displayName": "Лохиk7300 | PC (29.07-18.08)",
+        "messages": 8,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "898835571789660201",
+        "displayName": "DeadPasan666 | PC",
+        "messages": 1,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1165697977470431303",
+        "displayName": "Columbw1st | PC (до 10.08)",
+        "messages": 6,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1200849868072173618",
+        "displayName": "L1ght2681 | iOS",
+        "messages": 0,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1400835018657366082",
+        "displayName": "CryAnggels | PE",
+        "messages": 6,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1392082750936453162",
+        "displayName": "FLIKS7 | PE",
+        "messages": 3,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1473764670279127232",
+        "displayName": "Wezzysigma12 | MK",
+        "messages": 3,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "990726129277087804",
+        "displayName": "truedanford | iOS",
+        "messages": 1,
+        "voiceSeconds": 0,
+        "passed": false
+      },
+      {
+        "userId": "1492930358700806405",
+        "displayName": "qzyyyudq",
+        "messages": 7,
+        "voiceSeconds": 0,
+        "passed": false
+      }
+    ]
   }
 ]
