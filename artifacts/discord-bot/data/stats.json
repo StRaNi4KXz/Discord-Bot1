@@ -1,5 +1,5 @@
 {
-  "lastSeenAt": 1784205895615,
+  "lastSeenAt": 1784206195618,
   "weekResetAt": 1783337102549,
   "users": [
     {
@@ -1080,10 +1080,10 @@
     {
       "userId": "1194365273394913327",
       "username": "stranick_",
-      "messages": 42,
+      "messages": 44,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 239,
+      "totalMessages": 241,
       "totalVoiceSeconds": 0,
       "excluded": false,
       "isCurator": false,
@@ -1105,10 +1105,10 @@
     {
       "userId": "1058056505884168222",
       "username": "ilnar124",
-      "messages": 35,
+      "messages": 39,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 167,
+      "totalMessages": 171,
       "totalVoiceSeconds": 1320,
       "excluded": false,
       "isCurator": true,
@@ -1430,10 +1430,10 @@
     {
       "userId": "1165697977470431303",
       "username": "mistercolumbw1st",
-      "messages": 1,
+      "messages": 3,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 47,
+      "totalMessages": 49,
       "totalVoiceSeconds": 0,
       "excluded": false,
       "isCurator": false,
@@ -1630,10 +1630,10 @@
     {
       "userId": "1473764670279127232",
       "username": "wezzykryt",
-      "messages": 2,
+      "messages": 3,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 2,
+      "totalMessages": 3,
       "totalVoiceSeconds": 0,
       "excluded": false,
       "isCurator": false,

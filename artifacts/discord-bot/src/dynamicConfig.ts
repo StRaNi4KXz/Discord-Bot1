@@ -18,6 +18,20 @@ interface DynamicNorm {
     tiket: number;
   };
   ignoredCategoryIds: string[];
+  salary: {
+    curator: {
+      obzvon: number;
+      tiket: number;
+      proverkaKm: number;
+      spisok: number;
+      bonus: number;
+    };
+    moderator: {
+      aktiv: number;
+      tiket: number;
+      bonus: number;
+    };
+  };
 }
 
 let norm: DynamicNorm = {
@@ -26,6 +40,20 @@ let norm: DynamicNorm = {
   curator: { obzvon: 5, tiket: 5, proverka: 5, proverkaKm: 0, spisok: 5 },
   moderator: { aktiv: 5, tiket: 5 },
   ignoredCategoryIds: [],
+  salary: {
+    curator: {
+      obzvon: 230,
+      tiket: 180,
+      proverkaKm: 230,
+      spisok: 120,
+      bonus: 670,
+    },
+    moderator: {
+      aktiv: 100,
+      tiket: 180,
+      bonus: 500,
+    },
+  },
 };
 
 function ensureDir(): void {
@@ -45,6 +73,10 @@ export function loadDynamicConfig(): void {
       curator: { ...norm.curator, ...(parsed.curator ?? {}) },
       moderator: { ...norm.moderator, ...(parsed.moderator ?? {}) },
       ignoredCategoryIds: parsed.ignoredCategoryIds ?? norm.ignoredCategoryIds,
+      salary: {
+        curator: { ...norm.salary.curator, ...(parsed.salary?.curator ?? {}) },
+        moderator: { ...norm.salary.moderator, ...(parsed.salary?.moderator ?? {}) },
+      },
     };
     console.log(`[DynConfig] Норма: ${norm.voiceHours}ч голос, ${norm.messages} сообщений`);
   } catch (e) {
@@ -83,6 +115,18 @@ export function setModeratorNorm(key: keyof DynamicNorm["moderator"], value: num
   norm.moderator[key] = value;
   save();
   console.log(`[DynConfig] Норма модератора ${key} изменена: ${value}`);
+}
+
+export function setCuratorSalary(key: keyof DynamicNorm["salary"]["curator"], value: number): void {
+  norm.salary.curator[key] = value;
+  save();
+  console.log(`[DynConfig] Ставка куратора ${key} изменена: ${value} сф`);
+}
+
+export function setModeratorSalary(key: keyof DynamicNorm["salary"]["moderator"], value: number): void {
+  norm.salary.moderator[key] = value;
+  save();
+  console.log(`[DynConfig] Ставка модератора ${key} изменена: ${value} сф`);
 }
 
 export function addIgnoredCategory(categoryId: string): boolean {

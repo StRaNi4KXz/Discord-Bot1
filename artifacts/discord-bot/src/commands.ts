@@ -20,7 +20,7 @@ import {
 } from "./store.js";
 import { sendWeeklyReport } from "./report.js";
 import { config } from "./config.js";
-import { getNorm, setVoiceHours, setMessages, setCuratorNorm, setModeratorNorm, addIgnoredCategory, removeIgnoredCategory } from "./dynamicConfig.js";
+import { getNorm, setVoiceHours, setMessages, setCuratorNorm, setModeratorNorm, setCuratorSalary, setModeratorSalary, addIgnoredCategory, removeIgnoredCategory } from "./dynamicConfig.js";
 import { getHistory } from "./history.js";
 
 function formatTime(seconds: number): string {
@@ -457,6 +457,208 @@ export async function handleCommand(message: Message): Promise<void> {
   }
 
 
+  // ── !вышестоящие ──
+  if (content === "!вышестоящие") {
+    const norm = getNorm();
+    const curators = getActiveUsers().filter((u) => u.isCurator);
+    const moderators = getActiveUsers().filter((u) => u.isModerator);
+
+    if (curators.length === 0 && moderators.length === 0) {
+      await message.reply("Кураторов и модераторов пока нет.");
+      return;
+    }
+
+    const embeds: EmbedBuilder[] = [];
+
+    // ── Кураторы ──
+    if (curators.length > 0) {
+      const cn = norm.curator;
+      const cs_salary = norm.salary.curator;
+
+      const lines = await Promise.all(
+        curators.map(async (u) => {
+          const member = await message.guild?.members.fetch(u.userId).catch(() => null);
+          const displayName = member?.displayName ?? u.username;
+          const cs = u.curatorStats;
+
+          const voiceOk    = u.voiceSeconds >= norm.voiceHours * 3600;
+          const msgOk      = u.messages >= norm.messages;
+          const obzvonOk   = cs.obzvon   >= cn.obzvon;
+          const tiketOk    = cs.tiket    >= cn.tiket;
+          const proverkaOk = cs.proverka >= cn.proverka;
+          const proverkaKmOk = cs.proverkaKm >= cn.proverkaKm;
+          const spisokOk   = cs.spisok   >= cn.spisok;
+          const allOk      = voiceOk && msgOk && obzvonOk && tiketOk && proverkaOk && proverkaKmOk && spisokOk;
+
+          // Зарплата
+          const salary =
+            cs_salary.bonus +
+            cs.obzvon   * cs_salary.obzvon +
+            cs.tiket    * cs_salary.tiket +
+            cs.proverkaKm * cs_salary.proverkaKm +
+            cs.spisok   * cs_salary.spisok;
+
+          return (
+            `${allOk ? "✅" : "❌"} **${displayName}**\n` +
+            `> 🎙 ${formatTime(u.voiceSeconds)}/${norm.voiceHours}ч  💬 ${u.messages}/${norm.messages}\n` +
+            `> 📞 Обзвоны: ${cs.obzvon}/${cn.obzvon} (${cs.obzvon * cs_salary.obzvon} сф) ${obzvonOk ? "✅" : "❌"}\n` +
+            `> 🎫 Тикеты: ${cs.tiket}/${cn.tiket} (${cs.tiket * cs_salary.tiket} сф) ${tiketOk ? "✅" : "❌"}\n` +
+            `> 🔍 Проверки КМ: ${cs.proverkaKm}/${cn.proverkaKm} (${cs.proverkaKm * cs_salary.proverkaKm} сф) ${proverkaKmOk ? "✅" : "❌"}\n` +
+            `> 📋 Списки: ${cs.spisok}/${cn.spisok} (${cs.spisok * cs_salary.spisok} сф) ${spisokOk ? "✅" : "❌"}\n` +
+            `> 💰 **Зарплата: ${salary} сф** (бонус куратора: ${cs_salary.bonus} сф)`
+          );
+        })
+      );
+
+      embeds.push(
+        new EmbedBuilder()
+          .setTitle("🛡 Кураторы — текущая неделя")
+          .setDescription(lines.join("\n\n").slice(0, 4096))
+          .setColor(0x5865f2)
+          .setTimestamp()
+          .setFooter({
+            text: `Норма: голос ${norm.voiceHours}ч | сообщ ${norm.messages} | обзвоны ${cn.obzvon} | тикеты ${cn.tiket} | проверки КМ ${cn.proverkaKm} | списки ${cn.spisok}`,
+          })
+      );
+    }
+
+    // ── Модераторы ──
+    if (moderators.length > 0) {
+      const mn = norm.moderator;
+      const ms_salary = norm.salary.moderator;
+
+      const lines = await Promise.all(
+        moderators.map(async (u) => {
+          const member = await message.guild?.members.fetch(u.userId).catch(() => null);
+          const displayName = member?.displayName ?? u.username;
+          const ms = u.moderatorStats;
+
+          const voiceOk = u.voiceSeconds >= norm.voiceHours * 3600;
+          const msgOk   = u.messages >= norm.messages;
+          const aktivOk = ms.aktiv >= mn.aktiv;
+          const tiketOk = ms.tiket >= mn.tiket;
+          const allOk   = voiceOk && msgOk && aktivOk && tiketOk;
+
+          // Зарплата
+          const salary =
+            ms_salary.bonus +
+            ms.aktiv * ms_salary.aktiv +
+            ms.tiket * ms_salary.tiket;
+
+          return (
+            `${allOk ? "✅" : "❌"} **${displayName}**\n` +
+            `> 🎙 ${formatTime(u.voiceSeconds)}/${norm.voiceHours}ч  💬 ${u.messages}/${norm.messages}\n` +
+            `> 🟢 Активы: ${ms.aktiv}/${mn.aktiv} (${ms.aktiv * ms_salary.aktiv} сф) ${aktivOk ? "✅" : "❌"}\n` +
+            `> 🎫 Тикеты: ${ms.tiket}/${mn.tiket} (${ms.tiket * ms_salary.tiket} сф) ${tiketOk ? "✅" : "❌"}\n` +
+            `> 💰 **Зарплата: ${salary} сф** (бонус модератора: ${ms_salary.bonus} сф)`
+          );
+        })
+      );
+
+      embeds.push(
+        new EmbedBuilder()
+          .setTitle("🔰 Клан-модераторы — текущая неделя")
+          .setDescription(lines.join("\n\n").slice(0, 4096))
+          .setColor(0x57f287)
+          .setTimestamp()
+          .setFooter({
+            text: `Норма: голос ${norm.voiceHours}ч | сообщ ${norm.messages} | активы ${mn.aktiv} | тикеты ${mn.tiket}`,
+          })
+      );
+    }
+
+    await message.reply({ embeds });
+    return;
+  }
+
+  // ── !ставка куратор/модер [позиция] X ──
+  // Примеры: !ставка куратор обзвон 300
+  //          !ставка куратор бонус 700
+  //          !ставка модер актив 150
+  {
+    const salaryMatch = content.match(
+      /^!ставка\s+(куратор|модер)\s+(\S+)\s+(\d+)$/i
+    );
+    if (salaryMatch) {
+      const role = salaryMatch[1].toLowerCase();
+      const keyRaw = salaryMatch[2].toLowerCase();
+      const value = parseInt(salaryMatch[3], 10);
+
+      const curatorKeys: Record<string, string> = {
+        обзвон: "obzvon",
+        тикет: "tiket",
+        "проверка": "proverkaKm",
+        "провекра": "proverkaKm",
+        список: "spisok",
+        бонус: "bonus",
+      };
+      const moderatorKeys: Record<string, string> = {
+        актив: "aktiv",
+        тикет: "tiket",
+        бонус: "bonus",
+      };
+
+      if (role === "куратор") {
+        const key = curatorKeys[keyRaw];
+        if (!key) {
+          await message.reply(
+            `❌ Неизвестная позиция куратора. Доступные: \`обзвон\`, \`тикет\`, \`проверка\`, \`список\`, \`бонус\``
+          );
+          return;
+        }
+        setCuratorSalary(key as any, value);
+        await message.reply(`✅ Ставка куратора **${keyRaw}** установлена: **${value} сф**`);
+      } else {
+        const key = moderatorKeys[keyRaw];
+        if (!key) {
+          await message.reply(
+            `❌ Неизвестная позиция модератора. Доступные: \`актив\`, \`тикет\`, \`бонус\``
+          );
+          return;
+        }
+        setModeratorSalary(key as any, value);
+        await message.reply(`✅ Ставка модератора **${keyRaw}** установлена: **${value} сф**`);
+      }
+      return;
+    }
+  }
+
+  // ── !ставки — показать все текущие ставки ──
+  if (content === "!ставки") {
+    const norm = getNorm();
+    const cs = norm.salary.curator;
+    const ms = norm.salary.moderator;
+    const embed = new EmbedBuilder()
+      .setTitle("💰 Текущие ставки зарплат (сф)")
+      .setColor(0xfee75c)
+      .addFields(
+        {
+          name: "🛡 Кураторы",
+          value: [
+            `• Обзвон: **${cs.obzvon} сф**`,
+            `• Тикет: **${cs.tiket} сф**`,
+            `• Проверка КМ: **${cs.proverkaKm} сф**`,
+            `• Список: **${cs.spisok} сф**`,
+            `• Бонус за роль куратора: **${cs.bonus} сф**`,
+          ].join("\n"),
+          inline: true,
+        },
+        {
+          name: "🔰 Клан-модераторы",
+          value: [
+            `• Актив: **${ms.aktiv} сф**`,
+            `• Тикет: **${ms.tiket} сф**`,
+            `• Бонус за роль модератора: **${ms.bonus} сф**`,
+          ].join("\n"),
+          inline: true,
+        }
+      )
+      .setFooter({ text: "Изменить: !ставка куратор [позиция] [сумма]" })
+      .setTimestamp();
+    await message.reply({ embeds: [embed] });
+    return;
+  }
+
   // ── !категория ──
   if (content.startsWith("!категория")) {
     const parts = content.split(" ");
@@ -743,6 +945,7 @@ export async function handleCommand(message: Message): Promise<void> {
           name: "📋 Рапорты",
           value: [
             "`!отчёт [ДД.ММ ДД.ММ]` — запустить отчёт (с датами или без)",
+            "`!вышестоящие` — статус и зарплата кураторов/модераторов",
           ].join("\n"),
         },
         {
@@ -752,6 +955,14 @@ export async function handleCommand(message: Message): Promise<void> {
             "`!норма установить сообщений X` — норма сообщений",
             "`!норма куратор установить [обзвон|тикет|проверка|список] X`",
             "`!норма модератор установить [актив|тикет] X`",
+          ].join("\n"),
+        },
+        {
+          name: "💰 Ставки зарплат (сф)",
+          value: [
+            "`!ставки` — показать текущие ставки",
+            "`!ставка куратор [обзвон|тикет|проверка|список|бонус] X`",
+            "`!ставка модер [актив|тикет|бонус] X`",
           ].join("\n"),
         }
       )
