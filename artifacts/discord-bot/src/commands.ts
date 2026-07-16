@@ -18,13 +18,10 @@ import {
   setModerator,
   type UserStats,
 } from "./store.js";
-import { sendWeeklyReport, sendPersonalReport } from "./report.js";
+import { sendWeeklyReport } from "./report.js";
 import { config } from "./config.js";
 import { getNorm, setVoiceHours, setMessages, setCuratorNorm, setModeratorNorm, addIgnoredCategory, removeIgnoredCategory } from "./dynamicConfig.js";
-import { rescanCuratorStats } from "./curatorRescan.js";
 import { getHistory } from "./history.js";
-
-let lastTestReportAt: number | null = null;
 
 function formatTime(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -223,33 +220,6 @@ function buildHistoryEmbed(): EmbedBuilder {
   return embed;
 }
 
-// ─── Вспомогательная функция поиска участника по каналу ──────────────────────
-
-async function findMemberByChannelName(
-  guild: import("discord.js").Guild,
-  usernameFromChannel: string
-): Promise<import("discord.js").GuildMember | null> {
-  const matchesChannel = (m: import("discord.js").GuildMember) => {
-    const nick = m.nickname?.toLowerCase() ?? "";
-    const display = m.displayName.toLowerCase();
-    const user = m.user.username.toLowerCase();
-    return (
-      nick === usernameFromChannel ||
-      nick.startsWith(usernameFromChannel) ||
-      display === usernameFromChannel ||
-      display.startsWith(usernameFromChannel) ||
-      user === usernameFromChannel
-    );
-  };
-
-  return (
-    guild.members.cache.find(matchesChannel) ??
-    (await guild.members
-      .search({ query: usernameFromChannel, limit: 10 })
-      .then((r) => r.find(matchesChannel) ?? null)
-      .catch(() => null))
-  );
-}
 
 // ─── Главный обработчик команд ────────────────────────────────────────────────
 
@@ -258,50 +228,33 @@ export async function handleCommand(message: Message): Promise<void> {
 
   // ── !норма ──
   if (content === "!норма" || content === "!norm") {
-    if (!message.guild) return;
+    const users = getActiveUsers();
     const norm = getNorm();
-
-    // Строим список из каналов рапорт-* (как в !км) — охватывает всех участников клана
-    const reportChannels = message.guild.channels.cache.filter(
-      (ch) => ch.name.startsWith("рапорт-") && ch.isTextBased()
-    );
-
-    const entries: { displayName: string; u: ReturnType<typeof getUser> }[] = [];
-    const seen = new Set<string>();
-
-    for (const ch of reportChannels.values()) {
-      if (!("permissionOverwrites" in ch)) continue;
-      const overwrites = (ch as any).permissionOverwrites?.cache as Map<string, any> | undefined;
-      if (!overwrites) continue;
-      for (const [id, overwrite] of overwrites.entries()) {
-        if (overwrite.type !== 1) continue;
-        if (id === message.guild.id) continue;
-        if (seen.has(id)) continue;
-        const member = await message.guild.members.fetch(id).catch(() => null);
-        if (!member) continue;
-        seen.add(id);
-        const username = member.user.username;
-        const u = getUser(id, username); // авто-регистрирует если новый
-        if (u.excluded) continue;
-        entries.push({ displayName: member.displayName, u });
-      }
-    }
-
-    if (entries.length === 0) {
-      await message.reply("Каналы рапорт-* не найдены или участников нет.");
+    if (users.length === 0) {
+      await message.reply("Статистика пуста — ещё никто не набрал активности.");
       return;
     }
-
-    const lines = entries.map(({ u, displayName }) => {
-      const voiceDone = u.voiceSeconds >= norm.voiceHours * 3600;
-      const msgDone = u.messages >= norm.messages;
-      const icon = voiceDone && msgDone ? "✅" : "❌";
-      return `${icon} **${displayName}** — голос: ${formatTime(u.voiceSeconds)}/${norm.voiceHours}ч, сообщений: ${u.messages}/${norm.messages}`;
-    });
-
+    const resolved = await Promise.all(
+      users.map(async (u) => {
+        const member = await message.guild?.members.fetch(u.userId).catch(() => null);
+        if (message.guild && !member) {
+          excludeUser(u.userId, u.username);
+          return null;
+        }
+        return { u, displayName: member?.displayName ?? u.username };
+      })
+    );
+    const lines = resolved
+      .filter((r): r is NonNullable<typeof r> => r !== null)
+      .map(({ u, displayName }) => {
+        const voiceDone = u.voiceSeconds >= norm.voiceHours * 3600;
+        const msgDone = u.messages >= norm.messages;
+        const icon = voiceDone && msgDone ? "✅" : "❌";
+        return `${icon} **${displayName}** — голос: ${formatTime(u.voiceSeconds)}/${norm.voiceHours}ч, сообщений: ${u.messages}/${norm.messages}`;
+      });
     const embed = new EmbedBuilder()
       .setTitle("📊 Текущая статистика")
-      .setDescription(lines.join("\n").slice(0, 4096))
+      .setDescription(lines.join("\n").slice(0, 4096) || "Нет активных участников.")
       .setColor(0x5865f2)
       .setTimestamp()
       .setFooter({ text: `Норма: ${norm.voiceHours}ч голос + ${norm.messages} сообщений` });
@@ -309,49 +262,33 @@ export async function handleCommand(message: Message): Promise<void> {
     return;
   }
 
-  // ── !пересчёт ──
-  if (content === "!пересчёт") {
-    await message.reply("🔄 Запускаю пересчёт статистики кураторов и модераторов...");
-    await rescanCuratorStats(message.client);
-    await message.reply("✅ Пересчёт завершён.");
-    return;
-  }
-
   // ── !км ──
   if (content === "!км") {
     if (!message.guild) return;
 
-    // Собираем все каналы рапорт-*
-    const reportChannels = message.guild.channels.cache.filter(
-      (ch) => ch.name.startsWith("рапорт-") && ch.isTextBased()
-    );
-
-    if (reportChannels.size === 0) {
-      await message.reply("Каналы рапорт-* не найдены.");
+    // Пингуем всех участников у которых в нике есть "|" (формат "Ник | Роль")
+    const allMembers = await message.guild.members.fetch().catch(() => null);
+    if (!allMembers) {
+      await message.reply("Не удалось получить список участников.");
       return;
     }
 
-    // Находим владельца каждого канала через permissionOverwrites (без bulk fetch)
-    const pinged = new Set<string>();
-    for (const ch of reportChannels.values()) {
-      if (!("permissionOverwrites" in ch)) continue;
-      const overwrites = (ch as any).permissionOverwrites?.cache as Map<string, any> | undefined;
-      if (!overwrites) continue;
-      for (const [id, overwrite] of overwrites.entries()) {
-        // type 1 = member (не роль)
-        if (overwrite.type !== 1) continue;
-        if (id === message.guild.id) continue;
-        if (pinged.has(id)) continue;
-        // Проверяем что участник всё ещё на сервере
-        const member = await message.guild.members.fetch(id).catch(() => null);
-        if (member) {
-          pinged.add(id);
-          await message.channel.send(`<@${id}>`);
-        }
-      }
+    const targets = allMembers.filter((m) => {
+      const name = m.nickname ?? m.displayName ?? m.user.username;
+      return name.includes("|") && !m.user.bot;
+    });
+
+    if (targets.size === 0) {
+      await message.reply("Участников с изменённым ником (формат «Ник | Роль») не найдено.");
+      return;
     }
 
-    await message.channel.send(`Конец списка. ${pinged.size} км в общем`);
+    const ch = message.channel as import("discord.js").TextChannel;
+    for (const member of targets.values()) {
+      await ch.send(`<@${member.id}>`);
+    }
+
+    await ch.send(`Конец списка. ${targets.size} км в общем`);
     return;
   }
 
@@ -519,286 +456,6 @@ export async function handleCommand(message: Message): Promise<void> {
     return;
   }
 
-  // ── !вышестоящие ──
-  if (content === "!вышестоящие") {
-    const norm = getNorm();
-    const curators = getActiveUsers().filter((u) => u.isCurator);
-    const moderators = getActiveUsers().filter((u) => u.isModerator);
-
-    if (curators.length === 0 && moderators.length === 0) {
-      await message.reply("Кураторов и модераторов пока нет.");
-      return;
-    }
-
-    const embeds: EmbedBuilder[] = [];
-
-    // Кураторы
-    if (curators.length > 0) {
-      const cn = norm.curator;
-      const lines = await Promise.all(
-        curators.map(async (u) => {
-          const member = await message.guild?.members.fetch(u.userId).catch(() => null);
-          const displayName = member?.displayName ?? u.username;
-          const cs = u.curatorStats;
-
-          const voiceOk    = u.voiceSeconds >= norm.voiceHours * 3600;
-          const msgOk      = u.messages >= norm.messages;
-          const obzvonOk   = cs.obzvon   >= cn.obzvon;
-          const tiketOk    = cs.tiket    >= cn.tiket;
-          const proverkaOk = cs.proverka >= cn.proverka;
-          const spisokOk   = cs.spisok   >= cn.spisok;
-          const allOk      = voiceOk && msgOk && obzvonOk && tiketOk && proverkaOk && spisokOk;
-
-          const h = Math.floor(u.voiceSeconds / 3600);
-          const m = Math.floor((u.voiceSeconds % 3600) / 60);
-
-          return (
-            `${allOk ? "✅" : "❌"} **${displayName}**\n` +
-            `> 🎙 ${h}ч ${m}м/${norm.voiceHours}ч  💬 ${u.messages}/${norm.messages}\n` +
-            `> 📞 Обзвоны: ${cs.obzvon}/${cn.obzvon}  🎫 Тикеты: ${cs.tiket}/${cn.tiket}  🔍 Проверки: ${cs.proverka}/${cn.proverka}  📋 Списки: ${cs.spisok}/${cn.spisok}`
-          );
-        })
-      );
-
-      embeds.push(
-        new EmbedBuilder()
-          .setTitle("🛡 Кураторы — текущая неделя")
-          .setDescription(lines.join("\n\n"))
-          .setColor(0x5865f2)
-          .setTimestamp()
-          .setFooter({
-            text: `Норма: голос ${norm.voiceHours}ч | сообщ ${norm.messages} | обзвоны ${cn.obzvon} | тикеты ${cn.tiket} | проверки ${cn.proverka} | списки ${cn.spisok}`,
-          })
-      );
-    }
-
-    // Модераторы
-    if (moderators.length > 0) {
-      const mn = norm.moderator;
-      const lines = await Promise.all(
-        moderators.map(async (u) => {
-          const member = await message.guild?.members.fetch(u.userId).catch(() => null);
-          const displayName = member?.displayName ?? u.username;
-          const ms = u.moderatorStats;
-
-          const voiceOk  = u.voiceSeconds >= norm.voiceHours * 3600;
-          const msgOk    = u.messages >= norm.messages;
-          const aktivOk  = ms.aktiv >= mn.aktiv;
-          const tiketOk  = ms.tiket >= mn.tiket;
-          const allOk    = voiceOk && msgOk && aktivOk && tiketOk;
-
-          const h = Math.floor(u.voiceSeconds / 3600);
-          const m = Math.floor((u.voiceSeconds % 3600) / 60);
-
-          return (
-            `${allOk ? "✅" : "❌"} **${displayName}**\n` +
-            `> 🎙 ${h}ч ${m}м/${norm.voiceHours}ч  💬 ${u.messages}/${norm.messages}\n` +
-            `> 🟢 Активы: ${ms.aktiv}/${mn.aktiv}  🎫 Тикеты: ${ms.tiket}/${mn.tiket}`
-          );
-        })
-      );
-
-      embeds.push(
-        new EmbedBuilder()
-          .setTitle("🔰 Клан-модераторы — текущая неделя")
-          .setDescription(lines.join("\n\n"))
-          .setColor(0x57f287)
-          .setTimestamp()
-          .setFooter({
-            text: `Норма: голос ${norm.voiceHours}ч | сообщ ${norm.messages} | активы ${mn.aktiv} | тикеты ${mn.tiket}`,
-          })
-      );
-    }
-
-    await message.reply({ embeds });
-    return;
-  }
-
-  // ── !рапорткуратор ──
-  if (content === "!рапорткуратор") {
-    const guild = message.guild;
-    if (!guild) {
-      await message.reply("Команда доступна только на сервере.");
-      return;
-    }
-
-    const curators = getActiveUsers().filter((u) => u.isCurator);
-    if (curators.length === 0) {
-      await message.reply("Нет назначенных кураторов. Используй `!куратор @ник` чтобы назначить.");
-      return;
-    }
-
-    await guild.channels.fetch();
-
-    const curatorMap = new Map(curators.map((u) => [u.userId, u]));
-    const reportChannels = guild.channels.cache.filter(
-      (ch) => ch.type === 0 && ch.name.toLowerCase().startsWith("рапорт-")
-    );
-
-    if (reportChannels.size === 0) {
-      await message.reply("Каналы `рапорт-*` не найдены на сервере.");
-      return;
-    }
-
-    await message.reply(`📤 Отправляю рапорты ${curators.length} куратор(ам)...`);
-
-    let sent = 0;
-    const alreadySent = new Set<string>();
-
-    for (const [, ch] of reportChannels) {
-      const usernameFromChannel = ch.name.toLowerCase().replace("рапорт-", "");
-      const member = await findMemberByChannelName(guild, usernameFromChannel);
-
-      if (!member) continue;
-      if (!curatorMap.has(member.id)) continue;
-      if (alreadySent.has(member.id)) continue;
-
-      const userStats = curatorMap.get(member.id)!;
-      const displayName = member.displayName;
-      const norm = getNorm();
-      const cn = norm.curator;
-      const cs = userStats.curatorStats;
-
-      const voiceOk    = userStats.voiceSeconds >= norm.voiceHours * 3600;
-      const msgOk      = userStats.messages >= norm.messages;
-      const obzvonOk   = cs.obzvon   >= cn.obzvon;
-      const tiketOk    = cs.tiket    >= cn.tiket;
-      const proverkaOk = cs.proverka >= cn.proverka;
-      const spisokOk   = cs.spisok   >= cn.spisok;
-      const allOk = voiceOk && msgOk && obzvonOk && tiketOk && proverkaOk && spisokOk;
-
-      const { monday, sunday } = getWeekDates();
-      const h = Math.floor(userStats.voiceSeconds / 3600);
-      const m2 = Math.floor((userStats.voiceSeconds % 3600) / 60);
-
-      const text = [
-        `# **Куратор: ${displayName}**`,
-        `## Отчет с ${fmtDate(monday)}-${fmtDate(sunday)}`,
-        `================================`,
-        `**> Активность в голосовых каналах - ${voiceOk ? "✅" : "❌"}`,
-        `> ${h}ч ${m2}м / ${norm.voiceHours}ч`,
-        `================================`,
-        `> Активность в текстовых каналах - ${msgOk ? "✅" : "❌"}`,
-        `> ${userStats.messages} / ${norm.messages}`,
-        `================================`,
-        `> Норма по обзвонам - ${obzvonOk ? "✅" : "❌"}`,
-        `> ${cs.obzvon} / ${cn.obzvon}`,
-        `================================`,
-        `> Норма по спискам - ${spisokOk ? "✅" : "❌"}`,
-        `> ${cs.spisok} / ${cn.spisok}`,
-        `================================`,
-        `> Норма по проверкам - ${proverkaOk ? "✅" : "❌"}`,
-        `> ${cs.proverka} / ${cn.proverka}`,
-        `================================`,
-        `> Норма по тикетам - ${tiketOk ? "✅" : "❌"}`,
-        `> ${cs.tiket} / ${cn.tiket}**`,
-        `================================`,
-        allOk ? `### ✅ Недельная норма выполнена` : `### ❌ Недельная норма не выполнена`,
-      ].join("\n");
-
-      try {
-        if (ch.type === 0) {
-          await (ch as import("discord.js").TextChannel).send(text);
-          alreadySent.add(member.id);
-          sent++;
-        }
-      } catch (e) {
-        console.warn(`[CuratorReport] Ошибка отправки в #${ch.name}:`, e);
-      }
-    }
-
-    await message.reply(`✅ Готово! Рапорты отправлены: ${sent} куратор(ам).`);
-    return;
-  }
-
-  // ── !рапортмодер ──
-  if (content === "!рапортмодер") {
-    const guild = message.guild;
-    if (!guild) {
-      await message.reply("Команда доступна только на сервере.");
-      return;
-    }
-
-    const moderators = getActiveUsers().filter((u) => u.isModerator);
-    if (moderators.length === 0) {
-      await message.reply("Нет назначенных модераторов. Используй `!модер @ник` чтобы назначить.");
-      return;
-    }
-
-    await guild.channels.fetch();
-
-    const moderatorMap = new Map(moderators.map((u) => [u.userId, u]));
-    const reportChannels = guild.channels.cache.filter(
-      (ch) => ch.type === 0 && ch.name.toLowerCase().startsWith("рапорт-")
-    );
-
-    if (reportChannels.size === 0) {
-      await message.reply("Каналы `рапорт-*` не найдены на сервере.");
-      return;
-    }
-
-    await message.reply(`📤 Отправляю рапорты ${moderators.length} модератор(ам)...`);
-
-    let sent = 0;
-    const alreadySent = new Set<string>();
-
-    for (const [, ch] of reportChannels) {
-      const usernameFromChannel = ch.name.toLowerCase().replace("рапорт-", "");
-      const member = await findMemberByChannelName(guild, usernameFromChannel);
-
-      if (!member) continue;
-      if (!moderatorMap.has(member.id)) continue;
-      if (alreadySent.has(member.id)) continue;
-
-      const userStats = moderatorMap.get(member.id)!;
-      const displayName = member.displayName;
-      const norm = getNorm();
-      const mn = norm.moderator;
-      const ms = userStats.moderatorStats;
-
-      const voiceOk  = userStats.voiceSeconds >= norm.voiceHours * 3600;
-      const msgOk    = userStats.messages >= norm.messages;
-      const aktivOk  = ms.aktiv >= mn.aktiv;
-      const tiketOk  = ms.tiket >= mn.tiket;
-      const allOk    = voiceOk && msgOk && aktivOk && tiketOk;
-
-      const { monday, sunday } = getWeekDates();
-      const h = Math.floor(userStats.voiceSeconds / 3600);
-      const m2 = Math.floor((userStats.voiceSeconds % 3600) / 60);
-
-      const text = [
-        `# **Клан-модератор: ${displayName}**`,
-        `## Отчет с ${fmtDate(monday)}-${fmtDate(sunday)}`,
-        `================================`,
-        `**> Активность в голосовых каналах - ${voiceOk ? "✅" : "❌"}`,
-        `> ${h}ч ${m2}м / ${norm.voiceHours}ч`,
-        `================================`,
-        `> Активность в текстовых каналах - ${msgOk ? "✅" : "❌"}`,
-        `> ${userStats.messages} / ${norm.messages}`,
-        `================================`,
-        `> Норма по активам - ${aktivOk ? "✅" : "❌"}`,
-        `> ${ms.aktiv} / ${mn.aktiv}`,
-        `================================`,
-        `> Норма по тикетам - ${tiketOk ? "✅" : "❌"}`,
-        `> ${ms.tiket} / ${mn.tiket}**`,
-        `================================`,
-        allOk ? `### ✅ Недельная норма выполнена` : `### ❌ Недельная норма не выполнена`,
-      ].join("\n");
-
-      try {
-        if (ch.type === 0) {
-          await (ch as import("discord.js").TextChannel).send(text);
-          alreadySent.add(member.id);
-          sent++;
-        }
-      } catch (e) {
-        console.warn(`[ModeratorReport] Ошибка отправки в #${ch.name}:`, e);
-      }
-    }
-
-    await message.reply(`✅ Готово! Рапорты отправлены: ${sent} модератор(ам).`);
-    return;
-  }
 
   // ── !категория ──
   if (content.startsWith("!категория")) {
@@ -1036,66 +693,6 @@ export async function handleCommand(message: Message): Promise<void> {
     return;
   }
 
-  // ── !тестрапорт ──
-  if (content === "!тестрапорт" || content === "!testreport") {
-    const guild = message.guild;
-    if (!guild) {
-      await message.reply("Команда доступна только на сервере.");
-      return;
-    }
-
-    const now = Date.now();
-    if (lastTestReportAt && now - lastTestReportAt < 60_000) {
-      const secsLeft = Math.ceil((60_000 - (now - lastTestReportAt)) / 1000);
-      await message.reply(`⏳ Подождите ещё ${secsLeft} сек. перед повторным запуском.`);
-      return;
-    }
-    lastTestReportAt = now;
-
-    await guild.channels.fetch();
-
-    const reportChannels = guild.channels.cache.filter(
-      (ch) => ch.type === 0 && ch.name.toLowerCase().startsWith("рапорт-")
-    );
-
-    if (reportChannels.size === 0) {
-      await message.reply("Каналы `рапорт-*` не найдены на сервере.");
-      return;
-    }
-
-    await message.reply(`📤 Отправляю рапорты в ${reportChannels.size} канала(ов)...`);
-
-    const norm = getNorm();
-    let sent = 0;
-    const alreadySent = new Set<string>();
-
-    for (const [, ch] of reportChannels) {
-      const usernameFromChannel = ch.name.toLowerCase().replace("рапорт-", "");
-      const member = await findMemberByChannelName(guild, usernameFromChannel);
-
-      const dedupeKey = member?.id ?? usernameFromChannel;
-      if (alreadySent.has(dedupeKey)) continue;
-
-      const displayName = member?.displayName ?? usernameFromChannel;
-      const userStats = member ? getUser(member.id, member.user.username) : null;
-
-      if (!userStats) continue;
-
-      alreadySent.add(dedupeKey);
-
-      try {
-        if (ch.type === 0 && member) {
-          await sendPersonalReport(guild, userStats, displayName);
-          sent++;
-        }
-      } catch (e) {
-        console.warn(`[TestReport] Ошибка отправки в #${ch.name}:`, e);
-      }
-    }
-
-    await message.reply(`✅ Готово! Рапорты отправлены: ${sent} участник(ам).`);
-    return;
-  }
 
   // ── !отчёт [дата1] [дата2] ──
   const reportMatch = content.match(/^!отчёт(?:\s+(\d{1,2}\.\d{1,2})(?:\s+(\d{1,2}\.\d{1,2}))?)?$/i)
@@ -1146,10 +743,6 @@ export async function handleCommand(message: Message): Promise<void> {
           name: "📋 Рапорты",
           value: [
             "`!отчёт [ДД.ММ ДД.ММ]` — запустить отчёт (с датами или без)",
-            "`!вышестоящие` — статус кураторов и модераторов",
-            "`!рапорткуратор` — отправить рапорты кураторам",
-            "`!рапортмодер` — отправить рапорты модераторам",
-            "`!пересчёт` — пересканировать каналы рапортов",
           ].join("\n"),
         },
         {

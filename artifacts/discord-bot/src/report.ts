@@ -1,9 +1,8 @@
-import { EmbedBuilder, TextChannel, Client, Guild, ChannelType } from "discord.js";
-import { getActiveUsers, resetAllStats, updateUserStreak, excludeUser, UserStats } from "./store.js";
+import { EmbedBuilder, TextChannel, Client } from "discord.js";
+import { getActiveUsers, resetAllStats, updateUserStreak, excludeUser } from "./store.js";
 import { config } from "./config.js";
 import { getNorm } from "./dynamicConfig.js";
 import { saveWeekSnapshot } from "./history.js";
-import { rescanCuratorStats } from "./curatorRescan.js";
 
 function formatTime(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -26,156 +25,6 @@ function fmtDate(d: Date): string {
   return `${d.getDate().toString().padStart(2, "0")}.${(d.getMonth() + 1).toString().padStart(2, "0")}`;
 }
 
-export async function sendPersonalReport(
-  guild: Guild,
-  user: UserStats,
-  displayName: string,
-  dateRange?: string
-): Promise<void> {
-  try {
-    const member = await guild.members.fetch(user.userId).catch(() => null);
-    if (!member) {
-      console.warn(`[Report] Участник ${displayName} не найден на сервере`);
-      return;
-    }
-
-    await guild.channels.fetch();
-
-    // Ищем канал только по нику ДО "|" — часть после "|" это тег роли
-    const nameBeforePipe = member.displayName.toLowerCase().trim().split("|")[0].trim();
-    const nickBeforePipe = (member.nickname?.toLowerCase().trim() ?? "").split("|")[0].trim();
-    const username = member.user.username.toLowerCase().trim();
-
-    const reportChannel = guild.channels.cache.find((ch) => {
-      const chName = "name" in ch ? (ch as any).name as string : "";
-      const name = chName.toLowerCase();
-      if (!name.startsWith("рапорт-")) return false;
-      const suffix = name.replace("рапорт-", "").trim();
-      const matches = (a: string, b: string) =>
-        b && (a === b || a.startsWith(b) || b.startsWith(a));
-      return (
-        matches(suffix, username) ||
-        (nickBeforePipe && matches(suffix, nickBeforePipe)) ||
-        (nameBeforePipe && matches(suffix, nameBeforePipe))
-      );
-    }) as TextChannel | undefined;
-
-    if (!reportChannel) {
-      console.warn(`[Report] Канал рапорт-${username} не найден`);
-      return;
-    }
-
-    const normNorm = getNorm();
-    if (!dateRange) {
-      const { monday, sunday } = getWeekRange();
-      dateRange = `${fmtDate(monday)}-${fmtDate(sunday)}`;
-    }
-
-    const voiceOk = user.voiceSeconds >= normNorm.voiceHours * 3600;
-    const msgOk = user.messages >= normNorm.messages;
-    const voiceStr = formatTime(user.voiceSeconds);
-
-    // ── Куратор-рапорт ──
-    if (user.isCurator) {
-      const cn = normNorm.curator;
-      const cs = user.curatorStats;
-
-      const obzvonOk   = cs.obzvon   >= cn.obzvon;
-      const tiketOk    = cs.tiket    >= cn.tiket;
-      const proverkaOk = cs.proverka >= cn.proverka;
-      const spisokOk   = cs.spisok   >= cn.spisok;
-      const allOk = voiceOk && msgOk && obzvonOk && tiketOk && proverkaOk && spisokOk;
-
-      const text = [
-        `# **Куратор: ${displayName}**`,
-        `## Отчет с ${dateRange}`,
-        `================================`,
-        `**> Активность в голосовых каналах - ${voiceOk ? "✅" : "❌"}`,
-        `> ${voiceStr} / ${normNorm.voiceHours}ч`,
-        `================================`,
-        `> Активность в текстовых каналах - ${msgOk ? "✅" : "❌"}`,
-        `> ${user.messages} / ${normNorm.messages}`,
-        `================================`,
-        `> Норма по обзвонам - ${obzvonOk ? "✅" : "❌"}`,
-        `> ${cs.obzvon} / ${cn.obzvon}`,
-        `================================`,
-        `> Норма по спискам - ${spisokOk ? "✅" : "❌"}`,
-        `> ${cs.spisok} / ${cn.spisok}`,
-        `================================`,
-        `> Норма по проверкам - ${proverkaOk ? "✅" : "❌"}`,
-        `> ${cs.proverka} / ${cn.proverka}`,
-        `================================`,
-        `> Норма по тикетам - ${tiketOk ? "✅" : "❌"}`,
-        `> ${cs.tiket} / ${cn.tiket}**`,
-        `================================`,
-        allOk ? `### ✅ Недельная норма выполнена` : `### ❌ Недельная норма не выполнена`,
-      ].join("\n");
-
-      await reportChannel.send(text);
-      console.log(`[Report] Куратор-рапорт отправлен: ${displayName}`);
-      return;
-    }
-
-    // ── Модератор-рапорт ──
-    if (user.isModerator) {
-      const mn = normNorm.moderator;
-      const ms = user.moderatorStats;
-
-      const aktivOk = ms.aktiv >= mn.aktiv;
-      const tiketOk = ms.tiket >= mn.tiket;
-      const allOk   = voiceOk && msgOk && aktivOk && tiketOk;
-
-      const text = [
-        `# **Клан-модератор: ${displayName}**`,
-        `## Отчет с ${dateRange}`,
-        `================================`,
-        `**> Активность в голосовых каналах - ${voiceOk ? "✅" : "❌"}`,
-        `> ${voiceStr} / ${normNorm.voiceHours}ч`,
-        `================================`,
-        `> Активность в текстовых каналах - ${msgOk ? "✅" : "❌"}`,
-        `> ${user.messages} / ${normNorm.messages}`,
-        `================================`,
-        `> Норма по активам - ${aktivOk ? "✅" : "❌"}`,
-        `> ${ms.aktiv} / ${mn.aktiv}`,
-        `================================`,
-        `> Норма по тикетам - ${tiketOk ? "✅" : "❌"}`,
-        `> ${ms.tiket} / ${mn.tiket}**`,
-        `================================`,
-        allOk ? `### ✅ Недельная норма выполнена` : `### ❌ Недельная норма не выполнена`,
-      ].join("\n");
-
-      await reportChannel.send(text);
-      console.log(`[Report] Модератор-рапорт отправлен: ${displayName}`);
-      return;
-    }
-
-    // ── Обычный участник ──
-    const voiceIcon = voiceOk ? "✅" : "❌";
-    const msgIcon = msgOk ? "✅" : "❌";
-    const normStr =
-      voiceOk && msgOk
-        ? "### ✅ Недельная норма выполнена"
-        : "### ❌ Недельная норма не выполнена";
-
-    const text = [
-      `# **Участник: ${displayName}**`,
-      `## Отчет с ${dateRange}`,
-      `================================`,
-      `**> Активность в голосовых каналах - ${voiceIcon}`,
-      `> ${voiceStr} / ${normNorm.voiceHours}ч`,
-      `================================`,
-      `> Активность в текстовых каналах - ${msgIcon}`,
-      `> ${user.messages} / ${normNorm.messages}**`,
-      `================================`,
-      normStr,
-    ].join("\n");
-
-    await reportChannel.send(text);
-    console.log(`[Report] Отправлено: ${displayName}`);
-  } catch (e) {
-    console.warn(`[Report] Ошибка отправки для ${displayName}:`, e);
-  }
-}
 
 export async function sendWeeklyReport(client: Client, dateRange?: string): Promise<void> {
   const channelId = config.reportChannelId;
@@ -195,13 +44,6 @@ export async function sendWeeklyReport(client: Client, dateRange?: string): Prom
     const { monday, sunday } = getWeekRange();
     dateRange = `${fmtDate(monday)}-${fmtDate(sunday)}`;
   }
-
-  // Пересканируем статы кураторов с прошлого понедельника (явно, независимо от weekResetAt)
-  const prevMonday = new Date();
-  const dow = prevMonday.getDay() === 0 ? 6 : prevMonday.getDay() - 1;
-  prevMonday.setDate(prevMonday.getDate() - dow - 7);
-  prevMonday.setHours(0, 0, 0, 0);
-  await rescanCuratorStats(client, prevMonday.getTime());
 
   const users = getActiveUsers();
   const norm = getNorm();
@@ -293,9 +135,6 @@ export async function sendWeeklyReport(client: Client, dateRange?: string): Prom
       failed.push("❌ " + line + ` *(${reasons.join(", ")})*`);
     }
 
-    if (guild) {
-      await sendPersonalReport(guild, user, displayName, dateRange);
-    }
   }
 
   const embed = new EmbedBuilder()

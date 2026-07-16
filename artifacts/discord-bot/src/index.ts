@@ -32,7 +32,6 @@ import { isSpam } from "./antiFarm.js";
 import { sendWeeklyReport } from "./report.js";
 import { handleCommand, handleStatusButton, handleTopButton } from "./commands.js";
 import { catchUpMissedMessages } from "./catchup.js";
-import { rescanCuratorStats } from "./curatorRescan.js";
 
 const client = new Client({
   intents: [
@@ -84,7 +83,6 @@ client.once(Events.ClientReady, async (c) => {
     console.log(`[Prune] Готово: исключено ${pruned} участников.`);
   }
 
-  await rescanCuratorStats(client);
   updateLastSeenAt();
 
   setInterval(() => {
