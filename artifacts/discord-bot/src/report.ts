@@ -1,4 +1,4 @@
-import { EmbedBuilder, TextChannel, Client } from "discord.js";
+import { EmbedBuilder, TextChannel, Client, Guild } from "discord.js";
 import { getActiveUsers, resetAllStats, updateUserStreak, excludeUser, UserStats } from "./store.js";
 import { config } from "./config.js";
 import { getNorm } from "./dynamicConfig.js";
@@ -24,13 +24,31 @@ function fmtDate(d: Date): string {
   return `${d.getDate().toString().padStart(2, "0")}.${(d.getMonth() + 1).toString().padStart(2, "0")}`;
 }
 
-// ── Персональный рапорт куратора (ДМ) ─────────────────────────────────────────
+// ── Поиск канала рапорт-* для участника ──────────────────────────────────────
+
+function findReportChannel(guild: Guild, member: import("discord.js").GuildMember): TextChannel | null {
+  const nameBeforePipe = (member.nickname ?? member.displayName).toLowerCase().split("|")[0].trim();
+  const username = member.user.username.toLowerCase();
+
+  return (guild.channels.cache.find((ch) => {
+    if (!("name" in ch) || !ch.isTextBased()) return false;
+    const name = (ch as any).name as string;
+    if (!name.toLowerCase().startsWith("рапорт-")) return false;
+    const suffix = name.toLowerCase().replace("рапорт-", "").trim();
+    return suffix === username || suffix === nameBeforePipe ||
+      username.startsWith(suffix) || nameBeforePipe.startsWith(suffix) ||
+      suffix.startsWith(username) || suffix.startsWith(nameBeforePipe);
+  }) as TextChannel | null) ?? null;
+}
+
+// ── Персональный рапорт куратора → канал рапорт-* ────────────────────────────
 
 async function sendCuratorDM(
   client: Client,
   user: UserStats,
   displayName: string,
-  dateRange: string
+  dateRange: string,
+  guild?: Guild
 ): Promise<void> {
   const norm = getNorm();
   const cn = norm.curator;
