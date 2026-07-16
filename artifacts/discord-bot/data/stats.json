@@ -1,5 +1,5 @@
 {
-  "lastSeenAt": 1784206704015,
+  "lastSeenAt": 1784206901653,
   "weekResetAt": 1783337102549,
   "users": [
     {
@@ -1461,10 +1461,10 @@
     {
       "userId": "898835571789660201",
       "username": ".dedbeddead",
-      "messages": 0,
+      "messages": 1,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 16,
+      "totalMessages": 17,
       "totalVoiceSeconds": 0,
       "excluded": false,
       "isCurator": false,
@@ -1487,10 +1487,10 @@
     {
       "userId": "1165697977470431303",
       "username": "mistercolumbw1st",
-      "messages": 3,
+      "messages": 6,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 49,
+      "totalMessages": 52,
       "totalVoiceSeconds": 0,
       "excluded": false,
       "isCurator": false,

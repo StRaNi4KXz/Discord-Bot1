@@ -484,11 +484,10 @@ export async function handleCommand(message: Message): Promise<void> {
           const voiceOk    = u.voiceSeconds >= norm.voiceHours * 3600;
           const msgOk      = u.messages >= norm.messages;
           const obzvonOk   = cs.obzvon   >= cn.obzvon;
-          const tiketOk    = cs.tiket    >= cn.tiket;
           const proverkaOk = cs.proverka >= cn.proverka;
           const proverkaKmOk = cs.proverkaKm >= cn.proverkaKm;
           const spisokOk   = cs.spisok   >= cn.spisok;
-          const allOk      = voiceOk && msgOk && obzvonOk && tiketOk && proverkaOk && proverkaKmOk && spisokOk;
+          const allOk      = voiceOk && msgOk && obzvonOk && proverkaOk && proverkaKmOk && spisokOk;
 
           // Зарплата
           const salary =
@@ -503,9 +502,9 @@ export async function handleCommand(message: Message): Promise<void> {
             `${allOk ? "✅" : "❌"} **${displayName}**\n` +
             `> 🎙 ${formatTime(u.voiceSeconds)}/${norm.voiceHours}ч  💬 ${u.messages}/${norm.messages}\n` +
             `> 📞 Обзвоны: ${cs.obzvon}/${cn.obzvon} (${cs.obzvon * cs_salary.obzvon} сф) ${obzvonOk ? "✅" : "❌"}\n` +
-            `> 🎫 Тикеты: ${cs.tiket}/${cn.tiket} (${cs.tiket * cs_salary.tiket} сф) ${tiketOk ? "✅" : "❌"}\n` +
             `> 🔍 Проверки КМ: ${cs.proverkaKm}/${cn.proverkaKm} (${cs.proverkaKm * cs_salary.proverkaKm} сф) ${proverkaKmOk ? "✅" : "❌"}\n` +
             `> 📋 Списки: ${cs.spisok}/${cn.spisok} (${cs.spisok * cs_salary.spisok} сф) ${spisokOk ? "✅" : "❌"}\n` +
+            (cs.tiket > 0 ? `> 🎫 Тикеты (бонус): ${cs.tiket} (${cs.tiket * cs_salary.tiket} сф)\n` : "") +
             (cs.aktiv > 0 ? `> 🟢 Активы (бонус): ${cs.aktiv} (${cs.aktiv * cs_salary.aktiv} сф)\n` : "") +
             `> 💰 **Зарплата: ${salary} сф** (бонус куратора: ${cs_salary.bonus} сф)`
           );
@@ -519,7 +518,7 @@ export async function handleCommand(message: Message): Promise<void> {
           .setColor(0x5865f2)
           .setTimestamp()
           .setFooter({
-            text: `Норма: голос ${norm.voiceHours}ч | сообщ ${norm.messages} | обзвоны ${cn.obzvon} | тикеты ${cn.tiket} | проверки КМ ${cn.proverkaKm} | списки ${cn.spisok}`,
+            text: `Норма: голос ${norm.voiceHours}ч | сообщ ${norm.messages} | обзвоны ${cn.obzvon} | проверки КМ ${cn.proverkaKm} | списки ${cn.spisok} | тикеты/активы — бонус`,
           })
       );
     }
