@@ -1,6 +1,6 @@
 {
-  "lastSeenAt": 1784210473621,
-  "weekResetAt": 1784210533404,
+  "lastSeenAt": 1784210626111,
+  "weekResetAt": 1784210627630,
   "users": [
     {
       "userId": "1405271296891289752",
@@ -187,10 +187,10 @@
     {
       "userId": "1472091449842729085",
       "username": "bil215777",
-      "messages": 0,
+      "messages": 1,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 331,
+      "totalMessages": 335,
       "totalVoiceSeconds": 36791.815,
       "excluded": false,
       "streak": 0,
@@ -1123,10 +1123,10 @@
     {
       "userId": "1194365273394913327",
       "username": "stranick_",
-      "messages": 3,
+      "messages": 1,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 255,
+      "totalMessages": 260,
       "totalVoiceSeconds": 0,
       "excluded": false,
       "isCurator": false,
@@ -1152,7 +1152,7 @@
       "messages": 1,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 179,
+      "totalMessages": 185,
       "totalVoiceSeconds": 1320,
       "excluded": false,
       "isCurator": true,
@@ -1646,7 +1646,7 @@
       "messages": 0,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 30,
+      "totalMessages": 33,
       "totalVoiceSeconds": 5160,
       "excluded": false,
       "isCurator": false,
