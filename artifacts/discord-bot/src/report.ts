@@ -215,8 +215,7 @@ export async function sendWeeklyReport(client: Client, dateRange?: string): Prom
     }
 
     const voiceStr = formatTime(user.voiceSeconds);
-    const msgStr = `${user.messages} сообщ.`;
-    const line = `**${displayName}** — голос: ${voiceStr} / ${norm.voiceHours}ч, чат: ${msgStr} / ${norm.messages}`;
+    const line = `${displayName} - голос: ${voiceStr}, сообщений: ${user.messages}`;
 
     updateUserStreak(user.userId, normPassed);
 
@@ -237,9 +236,9 @@ export async function sendWeeklyReport(client: Client, dateRange?: string): Prom
       if (user.isCurator) {
         const cn = norm.curator;
         const cs = user.curatorStats;
-        if (cs.obzvon < cn.obzvon)         reasons.push(`мало обзвонов (${cs.obzvon}/${cn.obzvon})`);
-        if (cs.proverkaKm < cn.proverkaKm) reasons.push(`мало проверок КМ (${cs.proverkaKm}/${cn.proverkaKm})`);
-        if (cs.spisok < cn.spisok)         reasons.push(`мало списков (${cs.spisok}/${cn.spisok})`);
+        if (cs.obzvon < cn.obzvon)         reasons.push(`обзвоны ${cs.obzvon}/${cn.obzvon}`);
+        if (cs.proverkaKm < cn.proverkaKm) reasons.push(`проверки КМ ${cs.proverkaKm}/${cn.proverkaKm}`);
+        if (cs.spisok < cn.spisok)         reasons.push(`списки ${cs.spisok}/${cn.spisok}`);
       }
       if (user.isModerator) {
         const mn = norm.moderator;
@@ -258,27 +257,28 @@ export async function sendWeeklyReport(client: Client, dateRange?: string): Prom
     }
   }
 
-  const embed = new EmbedBuilder()
-    .setTitle(`📋 Еженедельная проверка нормы активности | ${dateRange}`)
-    .setColor(failed.length === 0 ? 0x57f287 : 0xed4245)
-    .setTimestamp()
-    .setFooter({ text: `Норма: ${norm.voiceHours}ч голос + ${norm.messages} сообщений` });
+  const lines: string[] = [
+    `📋 **Еженедельная проверка нормы | ${dateRange}**`,
+    `Норма: ${norm.voiceHours}ч голос + ${norm.messages} сообщений`,
+    ``,
+  ];
 
   if (passed.length > 0) {
-    embed.addFields({
-      name: `✅ Норма выполнена (${passed.length})`,
-      value: passed.join("\n").slice(0, 1024),
-    });
+    lines.push(`✅ Норма выполнена (${passed.length})`);
+    lines.push(...passed);
+    lines.push(``);
   }
 
   if (failed.length > 0) {
-    embed.addFields({
-      name: `❌ Норма не выполнена (${failed.length})`,
-      value: failed.join("\n").slice(0, 1024),
-    });
+    lines.push(`❌ Норма не выполнена (${failed.length})`);
+    lines.push(...failed);
   }
 
-  await (channel as TextChannel).send({ embeds: [embed] });
+  const text = lines.join("\n");
+  // Discord limit 2000 chars per message — split if needed
+  for (let i = 0; i < text.length; i += 1900) {
+    await (channel as TextChannel).send(text.slice(i, i + 1900));
+  }
 
   saveWeekSnapshot({
     weekEnding: new Date().toISOString().slice(0, 10),
