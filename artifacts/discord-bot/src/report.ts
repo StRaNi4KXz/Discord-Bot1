@@ -74,7 +74,7 @@ async function sendCuratorDM(
     : `# Недельная норма не выполнена <a:rts_Animated_Cross:739902221042319392>`;
 
   const lines: string[] = [
-    `# Куратор (${displayName})`,
+    `# Куратор <@${user.userId}>`,
     `## Отчёт с ${dateRange}`,
     `**=====================**`,
     `** Тикеты ** - ${cs.tiket} (бонус) = ${tiketSf} сф`,
@@ -144,7 +144,7 @@ async function sendModeratorDM(
     : `# Недельная норма не выполнена <a:rts_Animated_Cross:739902221042319392>`;
 
   const lines: string[] = [
-    `# Клан-модератор (${displayName})`,
+    `# Клан-модератор <@${user.userId}>`,
     `## Отчёт с ${dateRange}`,
     `**=====================**`,
     `** Активы** - ${ms.aktiv}/${mn.aktiv} ${aktivOk ? "✅" : "❌"} = ${aktivSf} сф`,
@@ -270,23 +270,7 @@ export async function sendWeeklyReport(client: Client, dateRange?: string): Prom
     if (normPassed) {
       passed.push("✅ " + line);
     } else {
-      const reasons: string[] = [];
-      if (!voiceOk) reasons.push("недостаточно времени в голосовом");
-      if (!msgOk) reasons.push("недостаточно сообщений");
-      if (user.isCurator) {
-        const cn = norm.curator;
-        const cs = user.curatorStats;
-        if (cs.obzvon < cn.obzvon)         reasons.push(`обзвоны ${cs.obzvon}/${cn.obzvon}`);
-        if (cs.proverkaKm < cn.proverkaKm) reasons.push(`проверки КМ ${cs.proverkaKm}/${cn.proverkaKm}`);
-        if (cs.spisok < cn.spisok)         reasons.push(`списки ${cs.spisok}/${cn.spisok}`);
-      }
-      if (user.isModerator) {
-        const mn = norm.moderator;
-        const ms = user.moderatorStats;
-        if (ms.aktiv < mn.aktiv) reasons.push(`мало активов (${ms.aktiv}/${mn.aktiv})`);
-        if (ms.tiket < mn.tiket) reasons.push(`мало тикетов (${ms.tiket}/${mn.tiket})`);
-      }
-      failed.push("❌ " + line + ` *(${reasons.join(", ")})*`);
+      failed.push("❌ " + line);
     }
 
     // Персональный рапорт в рапорт-* канал
