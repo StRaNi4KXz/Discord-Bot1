@@ -93,26 +93,36 @@ async function sendCuratorDM(
     `# Общая зарплата: ${totalSalary} сапфиров`,
   ];
 
+  if (!guild) {
+    console.warn(`[Report] Нет guild — рапорт куратора ${displayName} пропущен`);
+    return;
+  }
+  const member = await guild.members.fetch(user.userId).catch(() => null);
+  if (!member) {
+    console.warn(`[Report] Участник ${displayName} не найден на сервере`);
+    return;
+  }
+  const reportChannel = findReportChannel(guild, member);
+  if (!reportChannel) {
+    console.warn(`[Report] Канал рапорт-* для ${displayName} не найден`);
+    return;
+  }
   try {
-    const discordUser = await client.users.fetch(user.userId).catch(() => null);
-    if (!discordUser) {
-      console.warn(`[Report] Не удалось найти пользователя для ДМ: ${displayName}`);
-      return;
-    }
-    await discordUser.send(lines.join("\n"));
-    console.log(`[Report] Куратор-рапорт (ДМ) отправлен: ${displayName}`);
+    await reportChannel.send(lines.join("\n"));
+    console.log(`[Report] Куратор-рапорт отправлен в #${reportChannel.name}: ${displayName}`);
   } catch (e) {
-    console.warn(`[Report] Не удалось отправить ДМ куратору ${displayName}:`, e);
+    console.warn(`[Report] Ошибка отправки в #${reportChannel.name} для ${displayName}:`, e);
   }
 }
 
-// ── Персональный рапорт модератора (ДМ) ──────────────────────────────────────
+// ── Персональный рапорт модератора → канал рапорт-* ─────────────────────────
 
 async function sendModeratorDM(
   client: Client,
   user: UserStats,
   displayName: string,
-  dateRange: string
+  dateRange: string,
+  guild?: Guild
 ): Promise<void> {
   const norm = getNorm();
   const mn = norm.moderator;
@@ -148,16 +158,25 @@ async function sendModeratorDM(
     `# Общая зарплата: ${totalSalary} сапфиров`,
   ];
 
+  if (!guild) {
+    console.warn(`[Report] Нет guild — рапорт модератора ${displayName} пропущен`);
+    return;
+  }
+  const member = await guild.members.fetch(user.userId).catch(() => null);
+  if (!member) {
+    console.warn(`[Report] Участник ${displayName} не найден на сервере`);
+    return;
+  }
+  const reportChannel = findReportChannel(guild, member);
+  if (!reportChannel) {
+    console.warn(`[Report] Канал рапорт-* для ${displayName} не найден`);
+    return;
+  }
   try {
-    const discordUser = await client.users.fetch(user.userId).catch(() => null);
-    if (!discordUser) {
-      console.warn(`[Report] Не удалось найти пользователя для ДМ: ${displayName}`);
-      return;
-    }
-    await discordUser.send(lines.join("\n"));
-    console.log(`[Report] Модератор-рапорт (ДМ) отправлен: ${displayName}`);
+    await reportChannel.send(lines.join("\n"));
+    console.log(`[Report] Модератор-рапорт отправлен в #${reportChannel.name}: ${displayName}`);
   } catch (e) {
-    console.warn(`[Report] Не удалось отправить ДМ модератору ${displayName}:`, e);
+    console.warn(`[Report] Ошибка отправки в #${reportChannel.name} для ${displayName}:`, e);
   }
 }
 
@@ -190,6 +209,9 @@ export async function sendWeeklyReport(client: Client, dateRange?: string): Prom
   }
 
   const guild = client.guilds.cache.first();
+
+  // Кэшируем каналы заранее — нужно для поиска рапорт-*
+  if (guild) await guild.channels.fetch().catch(() => {});
 
   const passed: string[] = [];
   const failed: string[] = [];
@@ -267,11 +289,11 @@ export async function sendWeeklyReport(client: Client, dateRange?: string): Prom
       failed.push("❌ " + line + ` *(${reasons.join(", ")})*`);
     }
 
-    // Персональный ДМ кураторам и модераторам
+    // Персональный рапорт в рапорт-* канал
     if (user.isCurator) {
-      await sendCuratorDM(client, user, displayName, dateRange);
+      await sendCuratorDM(client, user, displayName, dateRange, guild ?? undefined);
     } else if (user.isModerator) {
-      await sendModeratorDM(client, user, displayName, dateRange);
+      await sendModeratorDM(client, user, displayName, dateRange, guild ?? undefined);
     }
   }
 
