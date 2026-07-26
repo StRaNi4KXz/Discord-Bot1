@@ -83,6 +83,23 @@ client.once(Events.ClientReady, async (c) => {
     console.log(`[Prune] Готово: исключено ${pruned} участников.`);
   }
 
+  // Восстанавливаем войс-сессии для тех, кто уже в канале
+  let voiceRestored = 0;
+  for (const guild of client.guilds.cache.values()) {
+    const afkChannelId = guild.afkChannelId;
+    for (const [, vs] of guild.voiceStates.cache) {
+      if (!vs.channelId || !vs.member) continue;
+      if (vs.member.user.bot) continue;
+      if (vs.channelId === afkChannelId) continue;
+      const catId = vs.channel?.parentId ?? null;
+      if (isCategoryIgnored(catId)) continue;
+      recordVoiceJoin(vs.member.id, vs.member.user.username);
+      voiceRestored++;
+      console.log(`[VoiceRestore] ${vs.member.user.username} уже в канале #${vs.channel?.name ?? vs.channelId}`);
+    }
+  }
+  console.log(`[VoiceRestore] Восстановлено ${voiceRestored} войс-сессий`);
+
   updateLastSeenAt();
 
   setInterval(() => {
