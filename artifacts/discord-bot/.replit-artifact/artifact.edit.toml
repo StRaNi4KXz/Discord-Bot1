@@ -2,6 +2,7 @@ kind = "api"
 previewPath = "/discord-bot"
 title = "Discord Bot"
 version = "1.0.0"
+deploymentTarget = "vm"
 
 [[services]]
 localPort = 3100
