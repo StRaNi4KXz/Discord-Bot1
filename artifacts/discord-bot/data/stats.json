@@ -1,5 +1,5 @@
 {
-  "lastSeenAt": 1785050820914,
+  "lastSeenAt": 1785051120926,
   "weekResetAt": 1784382910403,
   "users": [
     {
@@ -1253,10 +1253,10 @@
     {
       "userId": "1507606273837764608",
       "username": "kokkorouo",
-      "messages": 105,
+      "messages": 106,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 299,
+      "totalMessages": 300,
       "totalVoiceSeconds": 0,
       "excluded": false,
       "isCurator": false,
