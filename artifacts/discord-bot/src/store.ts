@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
 
-const DATA_FILE = path.resolve(__dirname, "../data/stats.json");
+const DATA_DIR = process.env.DATA_DIR ?? path.resolve(__dirname, "../data");
+const DATA_FILE = path.join(DATA_DIR, "stats.json");
 
 export interface UserStats {
   userId: string;

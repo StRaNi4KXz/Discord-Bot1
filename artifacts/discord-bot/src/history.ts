@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
 
-const HISTORY_FILE = path.resolve(__dirname, "../data/history.json");
+const DATA_DIR = process.env.DATA_DIR ?? path.resolve(__dirname, "../data");
+const HISTORY_FILE = path.join(DATA_DIR, "history.json");
 const MAX_WEEKS = 12;
 
 export interface WeekEntry {

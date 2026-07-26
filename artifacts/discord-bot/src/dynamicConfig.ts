@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
 
-const CONFIG_FILE = path.resolve(__dirname, "../data/dynamic_config.json");
+const DATA_DIR = process.env.DATA_DIR ?? path.resolve(__dirname, "../data");
+const CONFIG_FILE = path.join(DATA_DIR, "dynamic_config.json");
 
 interface DynamicNorm {
   voiceHours: number;
