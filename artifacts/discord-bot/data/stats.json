@@ -1,5 +1,5 @@
 {
-  "lastSeenAt": 1785051420929,
+  "lastSeenAt": 1785052620969,
   "weekResetAt": 1784382910403,
   "users": [
     {
@@ -1123,10 +1123,10 @@
     {
       "userId": "1194365273394913327",
       "username": "stranick_",
-      "messages": 347,
+      "messages": 350,
       "voiceSeconds": 0,
       "voiceJoinedAt": null,
-      "totalMessages": 728,
+      "totalMessages": 731,
       "totalVoiceSeconds": 0,
       "excluded": false,
       "isCurator": false,
@@ -1955,10 +1955,10 @@
     {
       "userId": "1322175763037814844",
       "username": "wesqexxzz_25188",
-      "messages": 134,
+      "messages": 144,
       "voiceSeconds": 1400.717,
       "voiceJoinedAt": null,
-      "totalMessages": 134,
+      "totalMessages": 144,
       "totalVoiceSeconds": 1400.717,
       "excluded": false,
       "isCurator": false,
@@ -2215,11 +2215,11 @@
     {
       "userId": "1466124780993380569",
       "username": "abothebest777_67416",
-      "messages": 104,
-      "voiceSeconds": 925.957,
+      "messages": 105,
+      "voiceSeconds": 1182.745,
       "voiceJoinedAt": null,
-      "totalMessages": 104,
-      "totalVoiceSeconds": 925.957,
+      "totalMessages": 105,
+      "totalVoiceSeconds": 1182.745,
       "excluded": false,
       "isCurator": false,
       "isModerator": false,
