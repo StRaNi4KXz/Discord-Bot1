@@ -2,6 +2,7 @@
 
 # compiled output
 dist
+!artifacts/discord-bot/dist/index.js
 tmp
 out-tsc
 *.tsbuildinfo
